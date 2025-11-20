@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="h-full p-8 overflow-y-auto bg-white">
+<div class="p-8">
     <div class="max-w-5xl mx-auto">
         <!-- Header del Formulario -->
         <div class="flex justify-between items-center mb-6">

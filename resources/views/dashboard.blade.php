@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="h-full">
+<div class="min-h-full">
     <!-- Vista de Lista (por defecto) -->
-    <div id="listaView" class="p-8 h-full">
+    <div id="listaView" class="p-8">
         <!-- Mensaje de éxito -->
         @if (session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6" role="alert">

@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="h-full">
-    <div class="p-8 h-full overflow-y-auto bg-white">
+<div>
+    <div class="p-8">
         <!-- Botón Volver -->
         <div class="mb-6">
             <a href="{{ route('dashboard') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
