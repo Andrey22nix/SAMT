@@ -159,7 +159,15 @@ function agregarMulta() {
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Valor *</label>
-                <input type="number" step="0.01" name="multas[${multaCounter}][valor]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" oninput="calcularCuotas()">
+                <input 
+                    type="number" 
+                    step="1" 
+                    min="0" 
+                    name="multas[${multaCounter}][valor]" 
+                    required 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                    inputmode="numeric"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, ''); calcularCuotas();">
             </div>
             
             <div>

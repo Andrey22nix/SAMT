@@ -131,27 +131,56 @@ class ClienteController extends Controller
             return redirect()->route('welcome')->with('error', 'Por favor, complete el proceso de pago desde la página de resultados.');
         }
 
-        // Validar para POST
+        // Validar para POST (puede venir pago de cuotas o de multas únicas)
         $request->validate([
-            'cuotas_ids' => ['required', 'array'],
-            'cuotas_ids.*' => ['required', 'integer', 'exists:cuotas,id'],
+            'cuotas_ids' => ['nullable', 'array'],
+            'cuotas_ids.*' => ['integer', 'exists:cuotas,id'],
+            'multas_ids' => ['nullable', 'array'],
+            'multas_ids.*' => ['integer', 'exists:simit_registros,id'],
             'nombre_pagador' => ['required', 'string', 'max:255'],
             'email_pagador' => ['required', 'email', 'max:255'],
             'telefono_pagador' => ['required', 'string', 'max:50'],
             'direccion_pagador' => ['required', 'string', 'max:500'],
         ]);
 
-        $cuotasIds = $request->cuotas_ids;
-        $cuotas = Cuota::whereIn('id', $cuotasIds)
-            ->with('cliente')
-            ->get();
+        $cuotasIds = $request->cuotas_ids ?? [];
+        $multasIds = $request->multas_ids ?? [];
 
-        if ($cuotas->isEmpty()) {
-            return redirect()->back()->with('error', 'No se encontraron las cuotas seleccionadas.');
+        if (empty($cuotasIds) && empty($multasIds)) {
+            return redirect()->back()->with('error', 'Por favor, seleccione al menos una cuota o multa para pagar.');
         }
 
-        $cliente = $cuotas->first()->cliente;
-        $total = $cuotas->sum('valor_cuota');
+        $esPagoMultas = false;
+        $cliente = null;
+        $total = 0;
+        $cuotas = collect();
+        $multas = collect();
+
+        if (!empty($cuotasIds)) {
+            $cuotas = Cuota::whereIn('id', $cuotasIds)
+                ->with('cliente')
+                ->get();
+
+            if ($cuotas->isEmpty()) {
+                return redirect()->back()->with('error', 'No se encontraron las cuotas seleccionadas.');
+            }
+
+            $cliente = $cuotas->first()->cliente;
+            $total = $cuotas->sum('valor_cuota');
+        } else {
+            // Pago de multas directas (sin acuerdo)
+            $multas = \App\Models\MultaVehicular::whereIn('id', $multasIds)
+                ->with('cliente')
+                ->get();
+
+            if ($multas->isEmpty()) {
+                return redirect()->back()->with('error', 'No se encontraron las multas seleccionadas.');
+            }
+
+            $cliente = $multas->first()->cliente;
+            $total = $multas->sum('valor');
+            $esPagoMultas = true;
+        }
 
         // Obtener URL de la imagen del QR desde configuración
         $qrImageUrl = $this->getQRImageUrl();
@@ -159,13 +188,16 @@ class ClienteController extends Controller
         return view('consulta.confirmar', [
             'cliente' => $cliente,
             'cuotasSeleccionadas' => $cuotas,
+            'multasSeleccionadas' => $multas,
             'cuotasIds' => $cuotasIds,
+            'multasIds' => $multasIds,
             'total' => $total,
             'nombrePagador' => $request->nombre_pagador,
             'emailPagador' => $request->email_pagador,
             'telefonoPagador' => $request->telefono_pagador,
             'direccionPagador' => $request->direccion_pagador,
             'qrImageUrl' => $qrImageUrl,
+            'esPagoMultas' => $esPagoMultas,
         ]);
     }
 

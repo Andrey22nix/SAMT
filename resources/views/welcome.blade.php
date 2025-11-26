@@ -355,8 +355,8 @@
 <body>
   <header>
     <div class="header-contacts">
-      <a href="https://wa.me/+000000" target="_blank">WhatsApp: +0000000</a>
-      <a href="tel:+0000">Teléfono: +500000</a>
+      <a href="https://wa.me/+573232135571" target="_blank">WhatsApp: 323 2135571</a>
+      <a href="tel:+576012365410">Teléfono: (601) 2365410</a>
     </div>
   </header>
   <div class="subheader-layer">

@@ -133,7 +133,20 @@
                   @foreach($cliente->multas as $multa)
                     <tr class="hover:bg-gray-50 multa-row" id="multa-row-{{ $multa->id }}">
                       <td class="px-4 py-4 whitespace-nowrap">
-                        <!-- Checkbox deshabilitado - no se toma en cuenta para el cálculo -->
+                        @php
+                          $multasPendientesCount = $cliente->multas->where('estado_pago', '!=', 'pagado')->count();
+                        @endphp
+                        @if($multasPendientesCount === 1 && $multa->estado_pago !== 'pagado' && (!isset($cliente->forma_pago) || $cliente->forma_pago !== 'acuerdo_pago'))
+                          <!-- Cuando solo hay una multa pendiente y no hay acuerdo de pago, permitir seleccionarla como pago único -->
+                          <input type="checkbox"
+                                 class="multa-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                 value="{{ $multa->id }}"
+                                 data-valor="{{ number_format($multa->valor, 2, '.', '') }}"
+                                 data-placa="{{ $multa->placa }}"
+                                 data-comparendo="{{ $multa->comparendo }}"
+                                 data-fecha="@if(is_string($multa->fecha)){{ $multa->fecha }}@else{{ $multa->fecha->format('d/m/Y') }}@endif"
+                                 onchange="updateTotal()">
+                        @endif
                       </td>
                       <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $multa->placa }}</td>
                       <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">${{ number_format($multa->valor, 0, ',', '.') }}</td>
@@ -147,7 +160,7 @@
                         @if(is_string($multa->fecha))
                           {{ $multa->fecha }}
                         @else
-                          {{ $multa->fecha->format('d/m/Y H:i:s') }}
+                          {{ $multa->fecha->format('d/m/Y') }}
                         @endif
                       </td>
                       <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $multa->comparendo }}</td>
@@ -405,12 +418,10 @@
 
 
     function updateTotal() {
-      // Solo contar cuotas seleccionadas, las multas no se toman en cuenta
-      // Siempre sumar las cuotas seleccionadas, nunca usar el total de multas directamente
+      // Sumar cuotas seleccionadas
       const cuotasSeleccionadas = document.querySelectorAll('.cuota-checkbox:checked');
       let total = 0;
       
-      // Sumar solo las cuotas que están seleccionadas
       cuotasSeleccionadas.forEach(checkbox => {
         if (checkbox.checked) {
           const valorStr = checkbox.getAttribute('data-valor');
@@ -420,6 +431,20 @@
           }
         }
       });
+
+      // Si no hay cuotas seleccionadas, intentar sumar multa única seleccionada (pago directo de multa)
+      if (cuotasSeleccionadas.length === 0) {
+        const multasSeleccionadas = document.querySelectorAll('.multa-checkbox:checked');
+        multasSeleccionadas.forEach(checkbox => {
+          if (checkbox.checked) {
+            const valorStr = checkbox.getAttribute('data-valor');
+            const valor = parseFloat(valorStr);
+            if (!isNaN(valor) && isFinite(valor)) {
+              total += valor;
+            }
+          }
+        });
+      }
       
       // Formatear el total sin decimales y con puntos como separadores de miles
       const totalRedondeado = Math.round(total);
@@ -456,9 +481,10 @@
 
     function pagarAhora() {
       const cuotasCheckboxes = document.querySelectorAll('.cuota-checkbox:checked');
+      const multasCheckboxes = document.querySelectorAll('.multa-checkbox:checked');
       
-      if (cuotasCheckboxes.length === 0) {
-        alert('Por favor, seleccione al menos una cuota para pagar.');
+      if (cuotasCheckboxes.length === 0 && multasCheckboxes.length === 0) {
+        alert('Por favor, seleccione al menos una cuota o multa para pagar.');
         return;
       }
 
@@ -476,25 +502,47 @@
       const items = [];
       let total = 0;
 
-      cuotasCheckboxes.forEach(checkbox => {
-        const acuerdo = checkbox.getAttribute('data-acuerdo');
-        const numero = checkbox.getAttribute('data-numero');
-        const valor = parseFloat(checkbox.getAttribute('data-valor'));
-        const fecha = checkbox.getAttribute('data-fecha');
-        
-        total += valor;
-        
-        items.push({
-          id: checkbox.value,
-          acuerdo: acuerdo,
-          numero: numero,
-          valor: valor,
-          fecha: fecha
+      if (cuotasCheckboxes.length > 0) {
+        cuotasCheckboxes.forEach(checkbox => {
+          const acuerdo = checkbox.getAttribute('data-acuerdo');
+          const numero = checkbox.getAttribute('data-numero');
+          const valor = parseFloat(checkbox.getAttribute('data-valor'));
+          const fecha = checkbox.getAttribute('data-fecha');
+          
+          total += valor;
+          
+          items.push({
+            id: checkbox.value,
+            tipo: 'cuota',
+            acuerdo: acuerdo,
+            numero: numero,
+            valor: valor,
+            fecha: fecha
+          });
         });
-      });
 
-      // Ordenar items por número de cuota
-      items.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
+        // Ordenar items por número de cuota
+        items.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
+      } else {
+        // Pago directo de multas (solo se permite cuando hay una)
+        multasCheckboxes.forEach(checkbox => {
+          const placa = checkbox.getAttribute('data-placa');
+          const comparendo = checkbox.getAttribute('data-comparendo');
+          const valor = parseFloat(checkbox.getAttribute('data-valor'));
+          const fecha = checkbox.getAttribute('data-fecha');
+
+          total += valor;
+
+          items.push({
+            id: checkbox.value,
+            tipo: 'multa',
+            placa: placa,
+            comparendo: comparendo,
+            valor: valor,
+            fecha: fecha
+          });
+        });
+      }
 
       // Mostrar modal
       mostrarModal(items, total);
@@ -516,7 +564,12 @@
           minimumFractionDigits: 0,
           maximumFractionDigits: 0
         }).format(item.valor);
-        li.innerHTML = `<strong>Cuota #${item.acuerdo}-Cuota${item.numero}</strong>: $${valorFormateado} (Fecha: ${item.fecha})`;
+
+        if (item.tipo === 'multa') {
+          li.innerHTML = `<strong>Multa placa ${item.placa}</strong> (Comparendo ${item.comparendo}): $${valorFormateado} (Fecha: ${item.fecha})`;
+        } else {
+          li.innerHTML = `<strong>Cuota #${item.acuerdo}-Cuota${item.numero}</strong>: $${valorFormateado} (Fecha: ${item.fecha})`;
+        }
         listaItems.appendChild(li);
       });
 
@@ -538,10 +591,12 @@
 
     function confirmarPago() {
       const cuotasCheckboxes = document.querySelectorAll('.cuota-checkbox:checked');
+      const multasCheckboxes = document.querySelectorAll('.multa-checkbox:checked');
       const cuotasIds = Array.from(cuotasCheckboxes).map(cb => cb.value);
-
-      if (cuotasIds.length === 0) {
-        alert('Por favor, seleccione al menos una cuota para pagar.');
+      const multasIds = Array.from(multasCheckboxes).map(cb => cb.value);
+      
+      if (cuotasIds.length === 0 && multasIds.length === 0) {
+        alert('Por favor, seleccione al menos una cuota o multa para pagar.');
         return;
       }
 
@@ -567,11 +622,19 @@
       csrfInput.value = '{{ csrf_token() }}';
       form.appendChild(csrfInput);
 
-      // Agregar IDs de cuotas
+      // Agregar IDs de cuotas o multas según corresponda
       cuotasIds.forEach((id, index) => {
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = `cuotas_ids[${index}]`;
+        input.value = id;
+        form.appendChild(input);
+      });
+
+      multasIds.forEach((id, index) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `multas_ids[${index}]`;
         input.value = id;
         form.appendChild(input);
       });

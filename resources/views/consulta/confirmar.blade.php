@@ -224,8 +224,8 @@
 <body>
   <header>
     <div class="header-contacts">
-      <a href="https://wa.me/+573104500500" target="_blank">WhatsApp: +57 310 450 0500</a>
-      <a href="tel:+5717448648">Teléfono: +57 1 744 8648</a>
+      <a href="https://wa.me/+573232135571" target="_blank">WhatsApp: 323 2135571</a>
+      <a href="tel:+576012365410">Teléfono: (601) 2365410</a>
     </div>
   </header>
   <div class="subheader-layer">
@@ -243,27 +243,85 @@
     </div>
     <div class="section-title">Ítems Seleccionados</div>
     <div class="items-list" id="selectedItems">
-      @foreach($cuotasSeleccionadas as $cuota)
-        <div class="item-row">
-          <div>
-            <strong>Cuota #{{ $cuota->cliente->numero_acuerdo }}-Cuota{{ $cuota->numero_cuota }}</strong>
-            <br>
-            <small>Fecha: {{ $cuota->fecha_pago->format('d/m/Y') }}</small>
+      @if(isset($esPagoMultas) && $esPagoMultas && isset($multasSeleccionadas))
+        @foreach($multasSeleccionadas as $multa)
+          <div class="item-row">
+            <div>
+              <strong>Multa placa {{ $multa->placa }}</strong>
+              <br>
+              <small>Comparendo: {{ $multa->comparendo }}</small>
+              <br>
+              <small>Fecha: 
+                @if(is_string($multa->fecha))
+                  {{ $multa->fecha }}
+                @else
+                  {{ $multa->fecha->format('d/m/Y') }}
+                @endif
+              </small>
+            </div>
+            <div>
+              <strong>${{ number_format($multa->valor, 0, ',', '.') }}</strong>
+            </div>
           </div>
-          <div>
-            <strong>${{ number_format($cuota->valor_cuota, 0, ',', '.') }}</strong>
+        @endforeach
+      @else
+        @foreach($cuotasSeleccionadas as $cuota)
+          <div class="item-row">
+            <div>
+              <strong>Cuota #{{ $cuota->cliente->numero_acuerdo }}-Cuota{{ $cuota->numero_cuota }}</strong>
+              <br>
+              <small>Fecha: {{ $cuota->fecha_pago->format('d/m/Y') }}</small>
+            </div>
+            <div>
+              <strong>${{ number_format($cuota->valor_cuota, 0, ',', '.') }}</strong>
+            </div>
           </div>
-        </div>
-      @endforeach
+        @endforeach
+      @endif
     </div>
     <div id="discountContainer"></div>
     <div class="summary-box">
       <span>Total a Pagar: <strong id="totalPagar">${{ number_format($total, 0, ',', '.') }}</strong></span>
     </div>
-    <div class="qr-code-container" id="qrMethod" style="display: block;">
+    <div class="qr-code-container" id="qrMethod" style="display: none;">
       <h3>Método de Pago - Código QR</h3>
       <div id="qrLoader" class="spinner" style="display: none;"></div>
-      <img id="qrImage" src="{{ $qrImageUrl ?? '' }}" alt="Código QR de Pago" style="display: none; max-width: 600px; margin: 10px auto;">
+
+      {{-- Tarjeta estilo instructivo con espacio para el QR, usando los logos del proyecto --}}
+      <div style="display: inline-block; background: #ffffff; border-radius: 22px; border: 3px solid #0054a6; padding: 22px 24px; max-width: 280px; text-align: center; font-family: Arial, sans-serif; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
+        {{-- Encabezado con logo Redeban --}}
+        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+          <img src="{{ asset('R8.png') }}" alt="Redeban" style="max-width: 150px; height: auto;">
+        </div>
+
+        {{-- Contenedor cuadrado donde se dibuja el código QR --}}
+        <div style="margin: 12px auto 18px auto; width: 190px; height: 190px; border: 4px solid #0054a6; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #ffffff;">
+          <img
+            id="qrImage"
+            src="{{ $qrImageUrl ?? '' }}"
+            alt="Código QR de Pago"
+            style="display: none; width: 100%; height: 100%; object-fit: contain;"
+          >
+        </div>
+
+        {{-- Título e instrucciones resumidas --}}
+        <h4 style="margin: 8px 0 6px 0; font-size: 0.9rem; font-weight: 700; color: #0054a6;">
+          Cómo pagar tus multas
+        </h4>
+        <ol style="margin: 4px 0 0 18px; padding: 0; text-align: left; font-size: 0.75rem; color: #333; line-height: 1.3;">
+          <li>Abre tu app bancaria o billetera digital y elige pagar con QR.</li>
+          <li>Escanea este código QR con la cámara de tu app.</li>
+          <li>Ingresa el valor a pagar y verifica los datos.</li>
+          <li>Confirma la transacción con tu clave, huella o Face ID.</li>
+        </ol>
+
+        {{-- Franja inferior con logos Federación y SIMIT --}}
+        <div style="margin-top: 16px; padding-top: 10px; border-top: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; gap: 16px;">
+          <img src="{{ asset('fcm-logo.png') }}" alt="Federación Colombiana de Municipios" style="max-height: 34px; width: auto;">
+          <img src="{{ asset('small-image.png') }}" alt="SIMIT" style="max-height: 38px; width: auto;">
+        </div>
+      </div>
+
       <p id="reference" style="display: none;">Código de Referencia: <strong id="referenceCode">-</strong></p>
       <div id="paymentWaiting" style="display: none;">Esperando pago... <span class="small-spinner"></span></div>
     </div>
@@ -288,7 +346,7 @@
   </footer>
   <script>
     const qrImageUrl = @json($qrImageUrl ?? null);
-    const cuotasIds = @json($cuotasIds);
+    const cuotasIds = @json($cuotasIds ?? []);
     const csrfToken = '{{ csrf_token() }}';
     let referenceCodeGlobal = '';
     
@@ -302,19 +360,36 @@
     };
     
     @php
-        $cuotasDataArray = $cuotasSeleccionadas->map(function($cuota) {
-            return [
-                'acuerdo' => $cuota->cliente->numero_acuerdo,
-                'numero' => $cuota->numero_cuota,
-                'valor' => $cuota->valor_cuota,
-                'fecha' => $cuota->fecha_pago->format('d/m/Y'),
-            ];
-        })->values()->all();
+        if (isset($esPagoMultas) && $esPagoMultas && isset($multasSeleccionadas)) {
+            $itemsDataArray = $multasSeleccionadas->map(function($multa) {
+                return [
+                    'tipo' => 'multa',
+                    'descripcion' => 'Multa placa '.$multa->placa.' (Comparendo '.$multa->comparendo.')',
+                    'valor' => $multa->valor,
+                    'fecha' => is_string($multa->fecha)
+                        ? $multa->fecha
+                        : $multa->fecha->format('d/m/Y'),
+                ];
+            })->values()->all();
+            $tipoPago = 'multas';
+        } else {
+            $itemsDataArray = $cuotasSeleccionadas->map(function($cuota) {
+                return [
+                    'tipo' => 'cuota',
+                    'descripcion' => 'Cuota #'.$cuota->cliente->numero_acuerdo.'-Cuota'.$cuota->numero_cuota,
+                    'valor' => $cuota->valor_cuota,
+                    'fecha' => $cuota->fecha_pago->format('d/m/Y'),
+                ];
+            })->values()->all();
+            $tipoPago = 'cuotas';
+        }
     @endphp
-    const cuotasData = @json($cuotasDataArray);
+    const tipoPago = @json($tipoPago);
+    const itemsData = @json($itemsDataArray);
 
     function generateQRCode() {
       const qrLoader = document.getElementById('qrLoader');
+      const qrMethod = document.getElementById('qrMethod');
       const qrImage = document.getElementById('qrImage');
       const generateButton = document.getElementById('generateQRButton');
       const confirmButton = document.getElementById('confirmPaymentButton');
@@ -322,7 +397,8 @@
       const referenceCode = document.getElementById('referenceCode');
       const paymentWaiting = document.getElementById('paymentWaiting');
 
-      // Mostrar spinner
+      // Mostrar contenedor de QR y spinner
+      qrMethod.style.display = 'block';
       qrLoader.style.display = 'block';
       generateButton.disabled = true;
 
@@ -387,19 +463,19 @@
       mensaje += '\n';
       mensaje += 'Ítems Seleccionados:\n';
       
-      cuotasData.forEach(function(cuota) {
+      itemsData.forEach(function(item) {
         const valorFormateado = new Intl.NumberFormat('es-CO', {
           minimumFractionDigits: 0,
           maximumFractionDigits: 0
-        }).format(cuota.valor);
-        mensaje += 'Cuota #' + cuota.acuerdo + '-Cuota' + cuota.numero + ': $' + valorFormateado + ' (Fecha: ' + cuota.fecha + ')\n';
+        }).format(item.valor);
+        mensaje += item.descripcion + ': $' + valorFormateado + ' (Fecha: ' + item.fecha + ')\n';
       });
       
       mensaje += '\n';
       
       // Calcular total
-      const total = cuotasData.reduce(function(sum, cuota) {
-        return sum + parseFloat(cuota.valor);
+      const total = itemsData.reduce(function(sum, item) {
+        return sum + parseFloat(item.valor);
       }, 0);
       const totalFormateado = new Intl.NumberFormat('es-CO', {
         minimumFractionDigits: 0,
@@ -412,8 +488,8 @@
       // Codificar mensaje para URL
       const mensajeCodificado = encodeURIComponent(mensaje);
       
-      // Número de WhatsApp (formato: 573122400934)
-      const whatsappNumber = '573122400934';
+      // Número de WhatsApp (formato internacional: 57 + número)
+      const whatsappNumber = '573232135571';
       
       // Construir URL de WhatsApp
       const whatsappUrl = 'https://api.whatsapp.com/send/?phone=' + whatsappNumber + '&text=' + mensajeCodificado + '&type=phone_number&app_absent=0';
