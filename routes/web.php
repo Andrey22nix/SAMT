@@ -91,4 +91,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/qr/upload', [ConfiguracionController::class, 'uploadQR'])->name('configuracion.qr.upload');
     });
 });
-
