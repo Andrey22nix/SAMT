@@ -46,32 +46,62 @@ function calcularCuotas() {
         const porcentajePrimera = parseFloat(document.getElementById('porcentaje_primera_cuota').value) || 30;
         
         if (numeroCuotas > 0 && total > 0) {
+            // Calcular primera cuota basada en el porcentaje
             const primeraCuota = (total * porcentajePrimera) / 100;
+            
+            // Calcular el resto que debe distribuirse en las cuotas restantes
             const resto = total - primeraCuota;
-            const cuotaRestante = resto / (numeroCuotas - 1);
+            
+            // Calcular cuántas cuotas restantes hay (todas menos la primera)
+            const numeroCuotasRestantes = numeroCuotas - 1;
+            
+            if (numeroCuotasRestantes <= 0) {
+                document.getElementById('resumenCuotas').classList.add('hidden');
+                return;
+            }
+            
+            // Calcular el valor base de cada cuota restante
+            const valorBaseCuotaRestante = resto / numeroCuotasRestantes;
             
             const detalleCuotas = document.getElementById('detalleCuotas');
             detalleCuotas.innerHTML = '';
             
-            // Primera cuota
+            // Primera cuota (redondeada a 2 decimales)
+            const primeraCuotaRedondeada = Math.round(primeraCuota * 100) / 100;
             const primeraDiv = document.createElement('div');
             primeraDiv.className = 'flex justify-between items-center p-3 bg-yellow-50 rounded border border-yellow-200';
             primeraDiv.innerHTML = `
                 <span class="font-medium">Cuota 1 (${porcentajePrimera}%):</span>
-                <span class="font-bold text-yellow-700">$${primeraCuota.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                <span class="font-bold text-yellow-700">$${primeraCuotaRedondeada.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             `;
             detalleCuotas.appendChild(primeraDiv);
             
-            // Resto de cuotas
-            for (let i = 2; i <= numeroCuotas; i++) {
+            // Calcular suma acumulada para ajustar la última cuota
+            let sumaAcumulada = primeraCuotaRedondeada;
+            
+            // Resto de cuotas (todas menos la última)
+            for (let i = 2; i < numeroCuotas; i++) {
+                const valorCuotaRedondeada = Math.round(valorBaseCuotaRestante * 100) / 100;
                 const cuotaDiv = document.createElement('div');
                 cuotaDiv.className = 'flex justify-between items-center p-3 bg-gray-50 rounded';
                 cuotaDiv.innerHTML = `
                     <span class="font-medium">Cuota ${i}:</span>
-                    <span class="font-bold text-gray-700">$${cuotaRestante.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    <span class="font-bold text-gray-700">$${valorCuotaRedondeada.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 `;
                 detalleCuotas.appendChild(cuotaDiv);
+                sumaAcumulada += valorCuotaRedondeada;
             }
+            
+            // Última cuota ajustada para que la suma total sea exacta
+            const ultimaCuota = total - sumaAcumulada;
+            const ultimaCuotaRedondeada = Math.round(ultimaCuota * 100) / 100;
+            const ultimaDiv = document.createElement('div');
+            ultimaDiv.className = 'flex justify-between items-center p-3 bg-gray-50 rounded';
+            ultimaDiv.innerHTML = `
+                <span class="font-medium">Cuota ${numeroCuotas}:</span>
+                <span class="font-bold text-gray-700">$${ultimaCuotaRedondeada.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            `;
+            detalleCuotas.appendChild(ultimaDiv);
             
             document.getElementById('resumenCuotas').classList.remove('hidden');
         } else {
@@ -277,4 +307,3 @@ window.agregarMulta = agregarMulta;
 window.eliminarMulta = eliminarMulta;
 window.resetearMultas = resetearMultas;
 window.editarMulta = editarMulta;
-

@@ -104,23 +104,30 @@ function submitConsulta() {
         })
     })
     .then(response => {
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
-        }
-        
         if (response.ok) {
             return response.json();
+        } else if (response.status === 404) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'No se encontraron registros para el documento ingresado.');
+            });
         } else {
             throw new Error('Error en la consulta');
         }
     })
     .then(data => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+        
         // Manejar la respuesta
-        // Por ejemplo, redirigir a una página de resultados
-        if (data.redirect) {
+        if (data.success && data.redirect) {
+            window.location.href = data.redirect;
+        } else if (data.redirect) {
             window.location.href = data.redirect;
         } else if (data.url) {
             window.location.href = data.url;
+        } else {
+            alert('No se encontraron resultados para el documento ingresado.');
         }
     })
     .catch(error => {
@@ -128,10 +135,6 @@ function submitConsulta() {
             loadingOverlay.style.display = 'none';
         }
         console.error('Error:', error);
-        alert('Ocurrió un error al realizar la consulta. Por favor, intenta nuevamente.');
+        alert(error.message || 'Ocurrió un error al realizar la consulta. Por favor, intenta nuevamente.');
     });
-    
-    // Alternativa: redirección directa (comentar lo anterior y descomentar esto)
-    // window.location.href = `/consulta?tipo_documento=${documentType}&numero_documento=${documentNumber}`;
 }
-

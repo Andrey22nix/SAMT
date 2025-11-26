@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class SimitRegistroController extends Controller
 {
@@ -65,7 +66,7 @@ class SimitRegistroController extends Controller
             'multas.*.estado_pago' => ['required', 'string', Rule::in(['pagado', 'pendiente', 'vencido'])],
             'multas.*.secretaria' => ['required', 'string', 'max:255'],
             'multas.*.codigo_infraccion' => ['required', 'string', 'max:50'],
-            // Forma de pago (solo si hay más de una multa)
+            // Forma de pago (solo si hay m├ís de una multa)
             'forma_pago' => ['nullable', 'string', Rule::in(['pago_unico', 'acuerdo_pago'])],
             'numero_cuotas' => ['nullable', 'integer', 'min:2', 'required_if:forma_pago,acuerdo_pago'],
             'porcentaje_primera_cuota' => ['nullable', 'numeric', 'min:1', 'max:100', 'required_if:forma_pago,acuerdo_pago'],
@@ -91,7 +92,29 @@ class SimitRegistroController extends Controller
                 }
             }
 
-            // Actualizar forma de pago si hay más de una multa
+            // Crear todas las multas primero
+            foreach ($validated['multas'] as $multaData) {
+                // Convertir fecha de dd/mm/yyyy a Y-m-d
+                $fecha = $this->convertirFecha($multaData['fecha']);
+                
+                MultaVehicular::create([
+                    'cliente_id' => $cliente->id,
+                    'placa' => $multaData['placa'],
+                    'valor' => $multaData['valor'],
+                    'infracciones' => $multaData['infracciones'],
+                    'departamento' => $multaData['departamento'],
+                    'fecha' => $fecha,
+                    'comparendo' => $multaData['comparendo'],
+                    'estado_pago' => $multaData['estado_pago'],
+                    'secretaria' => $multaData['secretaria'],
+                    'codigo_infraccion' => $multaData['codigo_infraccion'],
+                ]);
+            }
+            
+            // Recargar el cliente con las nuevas multas para calcular correctamente
+            $cliente->refresh();
+            
+            // Actualizar forma de pago si hay m├ís de una multa
             if (count($validated['multas']) > 1) {
                 if (isset($validated['forma_pago']) && !empty($validated['forma_pago'])) {
                     $updateData = [
@@ -100,14 +123,14 @@ class SimitRegistroController extends Controller
                         'porcentaje_primera_cuota' => $validated['forma_pago'] == 'acuerdo_pago' ? ($validated['porcentaje_primera_cuota'] ?? 30.00) : null,
                     ];
                     
-                    // Generar número de acuerdo si es acuerdo de pago y no existe
+                    // Generar n├║mero de acuerdo si es acuerdo de pago y no existe
                     if ($validated['forma_pago'] == 'acuerdo_pago' && empty($cliente->numero_acuerdo)) {
                         $updateData['numero_acuerdo'] = $this->generarNumeroAcuerdo();
                     }
                     
                     $cliente->update($updateData);
                     
-                    // Generar cuotas si es acuerdo de pago
+                    // Generar cuotas si es acuerdo de pago (despu├®s de crear las multas)
                     if ($validated['forma_pago'] == 'acuerdo_pago' && $cliente->numero_cuotas) {
                         $this->generarCuotas($cliente);
                     }
@@ -121,22 +144,6 @@ class SimitRegistroController extends Controller
                     'numero_acuerdo' => null,
                 ]);
                 $cliente->cuotas()->delete();
-            }
-
-            // Crear todas las multas
-            foreach ($validated['multas'] as $multaData) {
-                MultaVehicular::create([
-                    'cliente_id' => $cliente->id,
-                    'placa' => $multaData['placa'],
-                    'valor' => $multaData['valor'],
-                    'infracciones' => $multaData['infracciones'],
-                    'departamento' => $multaData['departamento'],
-                    'fecha' => $multaData['fecha'],
-                    'comparendo' => $multaData['comparendo'],
-                    'estado_pago' => $multaData['estado_pago'],
-                    'secretaria' => $multaData['secretaria'],
-                    'codigo_infraccion' => $multaData['codigo_infraccion'],
-                ]);
             }
 
             DB::commit();
@@ -191,7 +198,7 @@ class SimitRegistroController extends Controller
             'multas.*.estado_pago' => ['required', 'string', Rule::in(['pagado', 'pendiente', 'vencido'])],
             'multas.*.secretaria' => ['required', 'string', 'max:255'],
             'multas.*.codigo_infraccion' => ['required', 'string', 'max:50'],
-            // Forma de pago (solo si hay más de una multa)
+            // Forma de pago (solo si hay m├ís de una multa)
             'forma_pago' => ['nullable', 'string', Rule::in(['pago_unico', 'acuerdo_pago'])],
             'numero_cuotas' => ['nullable', 'integer', 'min:2', 'required_if:forma_pago,acuerdo_pago'],
             'porcentaje_primera_cuota' => ['nullable', 'numeric', 'min:1', 'max:100', 'required_if:forma_pago,acuerdo_pago'],
@@ -217,7 +224,50 @@ class SimitRegistroController extends Controller
                 $cliente->update(['nombre' => $validated['nombre']]);
             }
 
-            // Actualizar forma de pago si hay más de una multa
+            // Actualizar la primera multa (la que se est├í editando)
+            $primeraMulta = $validated['multas'][0];
+            // Convertir fecha de dd/mm/yyyy a Y-m-d
+            $fecha = $this->convertirFecha($primeraMulta['fecha']);
+            
+            $multaOriginal->update([
+                'cliente_id' => $cliente->id,
+                'placa' => $primeraMulta['placa'],
+                'valor' => $primeraMulta['valor'],
+                'infracciones' => $primeraMulta['infracciones'],
+                'departamento' => $primeraMulta['departamento'],
+                'fecha' => $fecha,
+                'comparendo' => $primeraMulta['comparendo'],
+                'estado_pago' => $primeraMulta['estado_pago'],
+                'secretaria' => $primeraMulta['secretaria'],
+                'codigo_infraccion' => $primeraMulta['codigo_infraccion'],
+            ]);
+
+            // Crear nuevas multas si hay m├ís de una
+            if (count($validated['multas']) > 1) {
+                for ($i = 1; $i < count($validated['multas']); $i++) {
+                    $multaData = $validated['multas'][$i];
+                    // Convertir fecha de dd/mm/yyyy a Y-m-d
+                    $fecha = $this->convertirFecha($multaData['fecha']);
+                    
+                    MultaVehicular::create([
+                        'cliente_id' => $cliente->id,
+                        'placa' => $multaData['placa'],
+                        'valor' => $multaData['valor'],
+                        'infracciones' => $multaData['infracciones'],
+                        'departamento' => $multaData['departamento'],
+                        'fecha' => $fecha,
+                        'comparendo' => $multaData['comparendo'],
+                        'estado_pago' => $multaData['estado_pago'],
+                        'secretaria' => $multaData['secretaria'],
+                        'codigo_infraccion' => $multaData['codigo_infraccion'],
+                    ]);
+                }
+            }
+            
+            // Recargar el cliente con todas las multas actualizadas
+            $cliente->refresh();
+            
+            // Actualizar forma de pago si hay m├ís de una multa
             if (count($validated['multas']) > 1) {
                 if (isset($validated['forma_pago']) && !empty($validated['forma_pago'])) {
                     $updateData = [
@@ -226,14 +276,14 @@ class SimitRegistroController extends Controller
                         'porcentaje_primera_cuota' => $validated['forma_pago'] == 'acuerdo_pago' ? ($validated['porcentaje_primera_cuota'] ?? 30.00) : null,
                     ];
                     
-                    // Generar número de acuerdo si es acuerdo de pago y no existe
+                    // Generar n├║mero de acuerdo si es acuerdo de pago y no existe
                     if ($validated['forma_pago'] == 'acuerdo_pago' && empty($cliente->numero_acuerdo)) {
                         $updateData['numero_acuerdo'] = $this->generarNumeroAcuerdo();
                     }
                     
                     $cliente->update($updateData);
                     
-                    // Generar cuotas si es acuerdo de pago
+                    // Generar cuotas si es acuerdo de pago (despu├®s de crear todas las multas)
                     if ($validated['forma_pago'] == 'acuerdo_pago' && $cliente->numero_cuotas) {
                         $this->generarCuotas($cliente);
                     }
@@ -247,40 +297,6 @@ class SimitRegistroController extends Controller
                     'numero_acuerdo' => null,
                 ]);
                 $cliente->cuotas()->delete();
-            }
-
-            // Actualizar la primera multa (la que se está editando)
-            $primeraMulta = $validated['multas'][0];
-            $multaOriginal->update([
-                'cliente_id' => $cliente->id,
-                'placa' => $primeraMulta['placa'],
-                'valor' => $primeraMulta['valor'],
-                'infracciones' => $primeraMulta['infracciones'],
-                'departamento' => $primeraMulta['departamento'],
-                'fecha' => $primeraMulta['fecha'],
-                'comparendo' => $primeraMulta['comparendo'],
-                'estado_pago' => $primeraMulta['estado_pago'],
-                'secretaria' => $primeraMulta['secretaria'],
-                'codigo_infraccion' => $primeraMulta['codigo_infraccion'],
-            ]);
-
-            // Crear nuevas multas si hay más de una
-            if (count($validated['multas']) > 1) {
-                for ($i = 1; $i < count($validated['multas']); $i++) {
-                    $multaData = $validated['multas'][$i];
-                    MultaVehicular::create([
-                        'cliente_id' => $cliente->id,
-                        'placa' => $multaData['placa'],
-                        'valor' => $multaData['valor'],
-                        'infracciones' => $multaData['infracciones'],
-                        'departamento' => $multaData['departamento'],
-                        'fecha' => $multaData['fecha'],
-                        'comparendo' => $multaData['comparendo'],
-                        'estado_pago' => $multaData['estado_pago'],
-                        'secretaria' => $multaData['secretaria'],
-                        'codigo_infraccion' => $multaData['codigo_infraccion'],
-                    ]);
-                }
             }
 
             DB::commit();
@@ -310,7 +326,7 @@ class SimitRegistroController extends Controller
     }
 
     /**
-     * Generar número de acuerdo aleatorio
+     * Generar n├║mero de acuerdo aleatorio
      */
     private function generarNumeroAcuerdo(): string
     {
@@ -322,6 +338,27 @@ class SimitRegistroController extends Controller
     }
 
     /**
+     * Convertir fecha de formato dd/mm/yyyy a Y-m-d
+     */
+    private function convertirFecha(string $fecha): string
+    {
+        try {
+            // Intentar parsear el formato dd/mm/yyyy
+            $carbon = Carbon::createFromFormat('d/m/Y', $fecha);
+            return $carbon->format('Y-m-d');
+        } catch (\Exception $e) {
+            // Si falla, intentar con otros formatos comunes
+            try {
+                $carbon = Carbon::parse($fecha);
+                return $carbon->format('Y-m-d');
+            } catch (\Exception $e2) {
+                // Si todo falla, lanzar excepci├│n con mensaje claro
+                throw new \InvalidArgumentException("Formato de fecha inv├ílido: {$fecha}. Use el formato dd/mm/yyyy");
+            }
+        }
+    }
+
+    /**
      * Generar cuotas para un cliente
      */
     private function generarCuotas(Cliente $cliente): void
@@ -329,43 +366,84 @@ class SimitRegistroController extends Controller
         // Eliminar cuotas existentes
         $cliente->cuotas()->delete();
         
-        // Calcular total de multas
+        // Recargar el cliente para asegurar que tiene todas las multas actualizadas
+        $cliente->refresh();
+        $cliente->load('multas');
+        
+        // Calcular total de multas (suma de TODAS las multas del cliente)
         $totalMultas = $cliente->multas->sum('valor');
         
         if ($totalMultas <= 0 || !$cliente->numero_cuotas) {
             return;
         }
         
-        // Calcular primera cuota
+        // Obtener la fecha de resoluci├│n (created_at de la primera multa)
+        $primeraMulta = $cliente->multas()->orderBy('created_at')->first();
+        $fechaResolucion = $primeraMulta ? $primeraMulta->created_at->format('Y-m-d') : now()->format('Y-m-d');
+        
+        // Calcular primera cuota basada en el porcentaje
         $porcentajePrimera = $cliente->porcentaje_primera_cuota ?? 30;
         $primeraCuota = ($totalMultas * $porcentajePrimera) / 100;
-        $resto = $totalMultas - $primeraCuota;
-        $cuotaRestante = $resto / ($cliente->numero_cuotas - 1);
         
-        // Fecha base (próximo mes, día 6)
+        // Calcular el resto que debe distribuirse en las cuotas restantes
+        $resto = $totalMultas - $primeraCuota;
+        
+        // Calcular cu├íntas cuotas restantes hay (todas menos la primera)
+        $numeroCuotasRestantes = $cliente->numero_cuotas - 1;
+        
+        if ($numeroCuotasRestantes <= 0) {
+            return;
+        }
+        
+        // Calcular el valor base de cada cuota restante (sin redondear a├║n)
+        $valorBaseCuotaRestante = $resto / $numeroCuotasRestantes;
+        
+        // Fecha base (pr├│ximo mes, d├¡a 6)
         $fechaBase = now()->addMonth()->day(6);
         
-        // Crear primera cuota
+        // Crear primera cuota (redondeada a 2 decimales)
+        $primeraCuotaRedondeada = round($primeraCuota, 2);
         Cuota::create([
             'cliente_id' => $cliente->id,
             'numero_cuota' => 1,
-            'valor_cuota' => $primeraCuota,
+            'valor_cuota' => $primeraCuotaRedondeada,
             'fecha_pago' => $fechaBase,
+            'fecha_resolucion' => $fechaResolucion,
             'estado' => 'pendiente',
         ]);
         
-        // Crear resto de cuotas
-        for ($i = 2; $i <= $cliente->numero_cuotas; $i++) {
+        // Calcular la suma acumulada para ajustar la ├║ltima cuota
+        $sumaAcumulada = $primeraCuotaRedondeada;
+        
+        // Crear resto de cuotas (todas menos la ├║ltima)
+        for ($i = 2; $i < $cliente->numero_cuotas; $i++) {
             $fechaPago = $fechaBase->copy()->addMonths($i - 1);
+            $valorCuotaRedondeada = round($valorBaseCuotaRestante, 2);
             
             Cuota::create([
                 'cliente_id' => $cliente->id,
                 'numero_cuota' => $i,
-                'valor_cuota' => $cuotaRestante,
+                'valor_cuota' => $valorCuotaRedondeada,
                 'fecha_pago' => $fechaPago,
+                'fecha_resolucion' => $fechaResolucion,
                 'estado' => 'pendiente',
             ]);
+            
+            $sumaAcumulada += $valorCuotaRedondeada;
         }
+        
+        // Crear la ├║ltima cuota ajustando para que la suma total sea exacta
+        $ultimaCuota = $totalMultas - $sumaAcumulada;
+        $fechaPagoUltima = $fechaBase->copy()->addMonths($cliente->numero_cuotas - 1);
+        
+        Cuota::create([
+            'cliente_id' => $cliente->id,
+            'numero_cuota' => $cliente->numero_cuotas,
+            'valor_cuota' => round($ultimaCuota, 2),
+            'fecha_pago' => $fechaPagoUltima,
+            'fecha_resolucion' => $fechaResolucion,
+            'estado' => 'pendiente',
+        ]);
     }
 }
 

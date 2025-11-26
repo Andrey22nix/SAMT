@@ -19,6 +19,13 @@
             </svg>
             <span>Multas</span>
         </a>
+
+        <a href="{{ route('configuracion.qr') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition {{ request()->routeIs('configuracion.*') ? 'bg-blue-800 text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white' }}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+            </svg>
+            <span>Configurar QR</span>
+        </a>
     </nav>
 
     <!-- Footer -->
