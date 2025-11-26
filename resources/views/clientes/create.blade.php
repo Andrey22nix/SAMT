@@ -68,6 +68,7 @@
             <!-- Sección Multas -->
             <div class="mb-8">
                 <h4 class="text-xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-3">Datos de la Multa</h4>
+
                 <div id="multasContainer">
                     <div class="multa-item mb-6 p-6 border-2 border-gray-200 rounded-lg bg-gray-50">
                         <div class="flex justify-between items-center mb-4">
@@ -136,6 +137,34 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Infracciones *</label>
                                 <input type="text" name="multas[0][infracciones]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Descripción de la infracción">
                             </div>
+                        </div>
+
+                        <!-- Pegar texto del comparendo para autocompletar ESTA multa -->
+                        <div class="mt-6 border-t border-dashed border-gray-300 pt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pegar información completa del comparendo para esta multa
+                            </label>
+                            <textarea
+                                class="texto-comparendo w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                                rows="6"
+                                placeholder="Pega aquí el texto del comparendo correspondiente a esta multa">
+                            </textarea>
+                            <div class="mt-3 flex justify-end">
+                                <button
+                                    type="button"
+                                    onclick="procesarTextoComparendo(this)"
+                                    class="inline-flex items-center px-5 py-2 rounded-lg text-sm font-semibold shadow-md transition
+                                           bg-blue-600 hover:bg-blue-700 text-white border border-blue-700"
+                                >
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 4v5h-.581M4 20h16M4 9a8 8 0 0116 0"></path>
+                                    </svg>
+                                    Procesar texto de esta multa
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">
+                                Este botón solo autocompleta los campos de <span class="font-semibold">esta</span> multa. No se guarda nada hasta que presiones “Guardar”.
+                            </p>
                         </div>
                     </div>
                 </div>

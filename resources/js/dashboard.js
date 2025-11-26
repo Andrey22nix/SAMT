@@ -209,6 +209,34 @@ function agregarMulta() {
                 <input type="text" name="multas[${multaCounter}][infracciones]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Descripción de la infracción">
             </div>
         </div>
+
+        <!-- Pegar texto del comparendo para autocompletar ESTA multa -->
+        <div class="mt-6 border-t border-dashed border-gray-300 pt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Pegar información completa del comparendo para esta multa
+            </label>
+            <textarea
+                class="texto-comparendo w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                rows="6"
+                placeholder="Pega aquí el texto del comparendo correspondiente a esta multa">
+            </textarea>
+            <div class="mt-3 flex justify-end">
+                <button
+                    type="button"
+                    onclick="procesarTextoComparendo(this)"
+                    class="inline-flex items-center px-5 py-2 rounded-lg text-sm font-semibold shadow-md transition
+                           bg-blue-600 hover:bg-blue-700 text-white border border-blue-700"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 4v5h-.581M4 20h16M4 9a8 8 0 0116 0"></path>
+                    </svg>
+                    Procesar texto de esta multa
+                </button>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">
+                Este botón solo autocompleta los campos de <span class="font-semibold">esta</span> multa. No se guarda nada hasta que presiones “Guardar”.
+            </p>
+        </div>
     `;
     container.appendChild(nuevaMulta);
     multaCounter++;
@@ -304,6 +332,151 @@ async function editarMulta(id) {
     }
 }
 
+/**
+ * Lee el texto pegado del comparendo y autocompleta
+ * los campos del formulario sin hacer ningún guardado.
+ * Esta función trabaja sobre la multa específica desde donde se hace clic.
+ */
+function procesarTextoComparendo(button) {
+    // Ubicar la multa a partir del botón (cada multa tiene su propio textarea)
+    const multaContainer = button ? button.closest('.multa-item') : null;
+    if (!multaContainer) {
+        console.warn('No se encontró la tarjeta de la multa para procesar el texto.');
+        return;
+    }
+
+    const textarea = multaContainer.querySelector('.texto-comparendo');
+    if (!textarea) {
+        console.warn('No se encontró el textarea de comparendo dentro de la multa.');
+        return;
+    }
+
+    const raw = textarea.value || '';
+    if (!raw.trim()) {
+        alert('Por favor, pega primero la información del comparendo.');
+        return;
+    }
+
+    // Normalizar texto
+    const texto = raw.replace(/\r\n/g, '\n');
+
+    // ---- Datos del cliente ----
+    // Número de documento
+    const docMatch = texto.match(/Número documento\s*\n\s*([0-9\*\.]+)/i);
+    if (docMatch) {
+        const numeroDocumento = docMatch[1].replace(/\D/g, '');
+        const docInput = document.getElementById('numero_documento');
+        if (docInput && numeroDocumento) {
+            docInput.value = numeroDocumento;
+        }
+    }
+
+    // Nombres
+    const nombresMatch = texto.match(/Nombres\s*\n\s*([A-ZÑÁÉÍÓÚ\*\s]+)/i);
+    const apellidosMatch = texto.match(/Apellidos\s*\n\s*([A-ZÑÁÉÍÓÚ\*\s]+)/i);
+    let nombres = nombresMatch ? nombresMatch[1].trim() : '';
+    let apellidos = apellidosMatch ? apellidosMatch[1].trim() : '';
+
+    // Limpiar múltiples espacios y asteriscos
+    const limpiarNombre = (str) =>
+        str
+            .replace(/\s+/g, ' ')
+            .replace(/\*/g, '')
+            .trim();
+
+    nombres = limpiarNombre(nombres);
+    apellidos = limpiarNombre(apellidos);
+
+    const nombreCompletoInput = document.getElementById('nombre');
+    if (nombreCompletoInput && (nombres || apellidos)) {
+        nombreCompletoInput.value = (nombres + ' ' + apellidos).trim();
+    }
+
+    // Helper para encontrar inputs dentro de la multa actual
+    function setInputPorSufijo(nombreSufijo, valor) {
+        if (!valor) return;
+        const input = multaContainer.querySelector(`input[name$="${nombreSufijo}"]`);
+        if (input) {
+            input.value = valor;
+        }
+    }
+
+    // Comparendo (puede venir en dos partes del texto)
+    let comparendo = '';
+    const comp1 = texto.match(/Comparendo:\s*([0-9]+)/i);
+    const comp2 = texto.match(/No\. comparendo\s*\n\s*([0-9]+)/i);
+    if (comp1) comparendo = comp1[1];
+    else if (comp2) comparendo = comp2[1];
+    setInputPorSufijo('[comparendo]', comparendo);
+
+    // Fecha comparendo (dd/mm/yyyy)
+    let fecha = '';
+    const fechaMatch = texto.match(/Fecha comparendo:\s*([0-9]{2}\/[0-9]{2}\/[0-9]{4})/i);
+    if (fechaMatch) {
+        fecha = fechaMatch[1];
+    } else {
+        // Fallback: buscar "Fecha" simple en bloque de Información comparendo
+        const bloqueInfo = texto.match(/Información comparendo([\s\S]+?)Datos conductor/i);
+        if (bloqueInfo) {
+            const f2 = bloqueInfo[1].match(/Fecha\s*\n\s*([0-9]{2}\/[0-9]{2}\/[0-9]{4})/i);
+            if (f2) fecha = f2[1];
+        }
+    }
+    setInputPorSufijo('[fecha]', fecha);
+
+    // Placa
+    const placaMatch = texto.match(/Placa\s*\n\s*([A-Z0-9]{5,7})/i);
+    if (placaMatch) {
+        setInputPorSufijo('[placa]', placaMatch[1].toUpperCase());
+    }
+
+    // Secretaría / Departamento (usaremos Secretaría como departamento por simplicidad)
+    let secretaria = '';
+    const sec1 = texto.match(/Secretar[ií]a:\s*([^\n]+)/i);
+    const sec2 = texto.match(/Secretar[ií]a\s*\n\s*([^\n]+)/i);
+    if (sec1) secretaria = sec1[1].trim();
+    else if (sec2) secretaria = sec2[1].trim();
+
+    // También intentamos con "Municipio comparendo"
+    const muniMatch = texto.match(/Municipio comparendo\s*\n\s*([^\n]+)/i);
+    if (!secretaria && muniMatch) {
+        secretaria = muniMatch[1].trim();
+    }
+
+    if (secretaria) {
+        setInputPorSufijo('[departamento]', secretaria);
+        setInputPorSufijo('[secretaria]', secretaria);
+    }
+
+    // Código de infracción + descripción
+    // Ejemplo: "Infracción: D03 - Transitar en sentido contrario ..."
+    let codigoInfraccion = '';
+    let descripcionInfraccion = '';
+
+    const infrLinea = texto.match(/Infracci[oó]n:\s*([A-Z0-9]+)\s*-\s*([^\n]+)/i);
+    if (infrLinea) {
+        codigoInfraccion = infrLinea[1].trim();
+        descripcionInfraccion = infrLinea[2].trim();
+    } else {
+        const codMatch = texto.match(/C[oó]digo\s*\n\s*([A-Z0-9]+)/i);
+        if (codMatch) {
+            codigoInfraccion = codMatch[1].trim();
+        }
+        const descMatch = texto.match(/Descripci[oó]n\s*\n\s*([\s\S]+?)(?:Datos conductor|Informaci[oó]n veh[ií]culo|$)/i);
+        if (descMatch) {
+            descripcionInfraccion = descMatch[1]
+                .replace(/\n+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+    }
+
+    setInputPorSufijo('[codigo_infraccion]', codigoInfraccion);
+    setInputPorSufijo('[infracciones]', descripcionInfraccion);
+
+    alert('Texto procesado. Revisa los campos autocompletados antes de guardar.');
+}
+
 // Exportar funciones al scope global para que estén disponibles en los onclick
 window.mostrarFormulario = mostrarFormulario;
 window.mostrarLista = mostrarLista;
@@ -315,3 +488,4 @@ window.agregarMulta = agregarMulta;
 window.eliminarMulta = eliminarMulta;
 window.resetearMultas = resetearMultas;
 window.editarMulta = editarMulta;
+window.procesarTextoComparendo = procesarTextoComparendo;
