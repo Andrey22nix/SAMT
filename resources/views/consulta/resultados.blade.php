@@ -82,7 +82,7 @@
     </header>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
-      
+
       <!-- 1. Información del Infractor -->
       <div class="bg-white rounded-lg shadow-lg mb-6">
         <div class="section-header">
@@ -188,14 +188,14 @@
                 </tbody>
               </table>
             </div>
-            
+
             <div class="mt-4 p-4 bg-gray-50 rounded-lg">
               <p class="text-sm text-gray-700">
-                <strong>Total multas a pagar:</strong> 
+                <strong>Total multas a pagar:</strong>
                 <span class="text-lg font-bold text-gray-900">${{ number_format($multasPendientes, 0, ',', '.') }}</span>
               </p>
               <p class="text-sm text-gray-700 mt-2">
-                <strong>Cantidad de multas sin pagar:</strong> 
+                <strong>Cantidad de multas sin pagar:</strong>
                 <span class="text-lg font-bold text-gray-900">{{ $cliente->multas->where('estado_pago', '!=', 'pagado')->count() }}</span>
               </p>
             </div>
@@ -227,7 +227,7 @@
               </p>
             @endif
           </div>
-          
+
           <div class="overflow-x-auto mb-4">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
@@ -254,11 +254,11 @@
                     $isPaid = $cuota->estado == 'pagado';
                     $isFirstPending = $primeraCuotaPendiente && $cuota->id == $primeraCuotaPendiente->id;
                   @endphp
-                  <tr class="hover:bg-gray-50 cuota-row {{ $isNext ? 'next-cuota' : '' }} {{ $isPaid ? 'paid-cuota' : '' }}" 
+                  <tr class="hover:bg-gray-50 cuota-row {{ $isNext ? 'next-cuota' : '' }} {{ $isPaid ? 'paid-cuota' : '' }}"
                       data-estado="{{ $cuota->estado }}">
                     <td class="px-4 py-4 whitespace-nowrap">
-                      <input type="checkbox" class="cuota-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
-                             value="{{ $cuota->id }}" 
+                      <input type="checkbox" class="cuota-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                             value="{{ $cuota->id }}"
                              data-valor="{{ number_format($cuota->valor_cuota, 2, '.', '') }}"
                              data-acuerdo="{{ $cliente->numero_acuerdo }}"
                              data-numero="{{ $cuota->numero_cuota }}"
@@ -308,32 +308,68 @@
           Datos del Pagador
         </div>
         <div class="section-content">
-          <form id="pagadorForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="nombre_pagador" class="block text-sm font-medium text-gray-700 mb-2">Nombre completo</label>
-              <input type="text" id="nombre_pagador" name="nombre_pagador" 
-                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     placeholder="Ingrese el nombre completo">
-            </div>
-            <div>
-              <label for="email_pagador" class="block text-sm font-medium text-gray-700 mb-2">Correo electrónico</label>
-              <input type="email" id="email_pagador" name="email_pagador" 
-                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     placeholder="correo@ejemplo.com">
-            </div>
-            <div>
-              <label for="telefono_pagador" class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
-              <input type="tel" id="telefono_pagador" name="telefono_pagador" 
-                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     placeholder="300 123 4567">
-            </div>
-            <div>
-              <label for="direccion_pagador" class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
-              <input type="text" id="direccion_pagador" name="direccion_pagador" 
-                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     placeholder="Calle, número, ciudad">
-            </div>
-          </form>
+            <form id="pagadorForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Nombre -->
+                <div>
+                    <label for="nombre_pagador" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre completo
+                    </label>
+
+                    <input type="text" id="nombre_pagador" name="nombre_pagador"
+                           pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]{3,60}"
+                           title="Solo letras y espacios, mínimo 3 caracteres"
+                           minlength="3"
+                           maxlength="60"
+                           required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Ingrese el nombre completo">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email_pagador" class="block text-sm font-medium text-gray-700 mb-2">
+                        Correo electrónico
+                    </label>
+
+                    <input type="email" id="email_pagador" name="email_pagador"
+                           required
+                           maxlength="80"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="correo@ejemplo.com">
+                </div>
+
+                <!-- Teléfono -->
+                <div>
+                    <label for="telefono_pagador" class="block text-sm font-medium text-gray-700 mb-2">
+                        Teléfono
+                    </label>
+
+                    <input type="tel" id="telefono_pagador" name="telefono_pagador"
+                           pattern="[0-9]{7,10}"
+                           minlength="7"
+                           maxlength="10"
+                           title="Solo números, entre 7 y 10 dígitos"
+                           required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="3001234567">
+                </div>
+
+                <!-- Dirección -->
+                <div>
+                    <label for="direccion_pagador" class="block text-sm font-medium text-gray-700 mb-2">
+                        Dirección
+                    </label>
+
+                    <input type="text" id="direccion_pagador" name="direccion_pagador"
+                           minlength="5"
+                           maxlength="120"
+                           required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Calle, número, ciudad">
+                </div>
+
+            </form>
         </div>
       </div>
 
@@ -399,14 +435,14 @@
     // Variables globales con totales
     const totalMultas = {{ $totalMultas }};
     const totalCuotasPendientes = {{ $cuotas->where('estado', 'pendiente')->count() }};
-    
+
     let multasAbiertas = true;
 
     function toggleMultas() {
       const content = document.getElementById('multas-content');
       const icon = document.getElementById('multas-icon');
       multasAbiertas = !multasAbiertas;
-      
+
       if (multasAbiertas) {
         content.style.display = 'block';
         icon.textContent = '▼';
@@ -421,7 +457,7 @@
       // Sumar cuotas seleccionadas
       const cuotasSeleccionadas = document.querySelectorAll('.cuota-checkbox:checked');
       let total = 0;
-      
+
       cuotasSeleccionadas.forEach(checkbox => {
         if (checkbox.checked) {
           const valorStr = checkbox.getAttribute('data-valor');
@@ -445,14 +481,14 @@
           }
         });
       }
-      
+
       // Formatear el total sin decimales y con puntos como separadores de miles
       const totalRedondeado = Math.round(total);
       const totalFormateado = totalRedondeado.toLocaleString('es-CO', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
-      
+
       document.getElementById('total-seleccionado').textContent = '$' + totalFormateado;
     }
 
@@ -467,7 +503,7 @@
     function toggleInfracciones(multaId) {
       const row = document.getElementById(`infracciones-row-${multaId}`);
       const button = document.getElementById(`btn-infracciones-${multaId}`);
-      
+
       if (row.classList.contains('hidden')) {
         // Desplegar
         row.classList.remove('hidden');
@@ -482,7 +518,7 @@
     function pagarAhora() {
       const cuotasCheckboxes = document.querySelectorAll('.cuota-checkbox:checked');
       const multasCheckboxes = document.querySelectorAll('.multa-checkbox:checked');
-      
+
       if (cuotasCheckboxes.length === 0 && multasCheckboxes.length === 0) {
         alert('Por favor, seleccione al menos una cuota o multa para pagar.');
         return;
@@ -508,9 +544,9 @@
           const numero = checkbox.getAttribute('data-numero');
           const valor = parseFloat(checkbox.getAttribute('data-valor'));
           const fecha = checkbox.getAttribute('data-fecha');
-          
+
           total += valor;
-          
+
           items.push({
             id: checkbox.value,
             tipo: 'cuota',
@@ -594,7 +630,7 @@
       const multasCheckboxes = document.querySelectorAll('.multa-checkbox:checked');
       const cuotasIds = Array.from(cuotasCheckboxes).map(cb => cb.value);
       const multasIds = Array.from(multasCheckboxes).map(cb => cb.value);
-      
+
       if (cuotasIds.length === 0 && multasIds.length === 0) {
         alert('Por favor, seleccione al menos una cuota o multa para pagar.');
         return;
@@ -614,7 +650,7 @@
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = '{{ route("pago.confirmar") }}';
-      
+
       // Agregar token CSRF
       const csrfInput = document.createElement('input');
       csrfInput.type = 'hidden';
