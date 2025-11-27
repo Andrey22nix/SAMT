@@ -313,60 +313,68 @@
                 <!-- Nombre -->
                 <div>
                     <label for="nombre_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre completo
+                        Nombre completo <span class="text-red-500">*</span>
                     </label>
-
                     <input type="text" id="nombre_pagador" name="nombre_pagador"
-                           pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]{3,60}"
-                           title="Solo letras y espacios, mínimo 3 caracteres"
                            minlength="3"
                            maxlength="60"
                            required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="Ingrese el nombre completo">
+                           autocomplete="name"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                           placeholder="Ingrese el nombre completo"
+                           oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, ''); validarCampoPagador(this);"
+                           onblur="validarCampoPagador(this);">
+                    <p id="error_nombre_pagador" class="text-red-500 text-xs mt-1 hidden">Solo letras y espacios, mínimo 3 caracteres</p>
                 </div>
 
                 <!-- Email -->
                 <div>
                     <label for="email_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Correo electrónico
+                        Correo electrónico <span class="text-red-500">*</span>
                     </label>
-
                     <input type="email" id="email_pagador" name="email_pagador"
                            required
                            maxlength="80"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="correo@ejemplo.com">
+                           autocomplete="email"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                           placeholder="correo@ejemplo.com"
+                           oninput="validarCampoPagador(this);"
+                           onblur="validarCampoPagador(this);">
+                    <p id="error_email_pagador" class="text-red-500 text-xs mt-1 hidden">Ingrese un correo electrónico válido</p>
                 </div>
 
                 <!-- Teléfono -->
                 <div>
                     <label for="telefono_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Teléfono
+                        Teléfono <span class="text-red-500">*</span>
                     </label>
-
                     <input type="tel" id="telefono_pagador" name="telefono_pagador"
-                           pattern="[0-9]{7,10}"
                            minlength="7"
                            maxlength="10"
-                           title="Solo números, entre 7 y 10 dígitos"
                            required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="3001234567">
+                           autocomplete="tel"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                           placeholder="3001234567"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); validarCampoPagador(this);"
+                           onblur="validarCampoPagador(this);">
+                    <p id="error_telefono_pagador" class="text-red-500 text-xs mt-1 hidden">Solo números, entre 7 y 10 dígitos</p>
                 </div>
 
                 <!-- Dirección -->
                 <div>
                     <label for="direccion_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Dirección
+                        Dirección <span class="text-red-500">*</span>
                     </label>
-
                     <input type="text" id="direccion_pagador" name="direccion_pagador"
                            minlength="5"
                            maxlength="120"
                            required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="Calle, número, ciudad">
+                           autocomplete="street-address"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                           placeholder="Calle, número, ciudad"
+                           oninput="validarCampoPagador(this);"
+                           onblur="validarCampoPagador(this);">
+                    <p id="error_direccion_pagador" class="text-red-500 text-xs mt-1 hidden">Mínimo 5 caracteres</p>
                 </div>
 
             </form>
@@ -435,6 +443,93 @@
     // Variables globales con totales
     const totalMultas = {{ $totalMultas }};
     const totalCuotasPendientes = {{ $cuotas->where('estado', 'pendiente')->count() }};
+
+    // ========== VALIDACIÓN DE CAMPOS DEL PAGADOR ==========
+    
+    /**
+     * Valida un campo del formulario del pagador y muestra/oculta mensajes de error
+     */
+    function validarCampoPagador(input) {
+      const id = input.id;
+      const valor = input.value.trim();
+      const errorElement = document.getElementById('error_' + id);
+      let esValido = true;
+      
+      // Validaciones específicas por campo
+      switch(id) {
+        case 'nombre_pagador':
+          // Solo letras y espacios, mínimo 3 caracteres
+          const regexNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,60}$/;
+          esValido = regexNombre.test(valor) && valor.length >= 3;
+          break;
+          
+        case 'email_pagador':
+          // Email válido
+          const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          esValido = regexEmail.test(valor);
+          break;
+          
+        case 'telefono_pagador':
+          // Solo números, entre 7 y 10 dígitos
+          const regexTelefono = /^[0-9]{7,10}$/;
+          esValido = regexTelefono.test(valor);
+          break;
+          
+        case 'direccion_pagador':
+          // Mínimo 5 caracteres
+          esValido = valor.length >= 5;
+          break;
+      }
+      
+      // Aplicar estilos visuales
+      if (valor.length > 0) {
+        if (esValido) {
+          input.classList.remove('border-red-500', 'ring-red-500');
+          input.classList.add('border-green-500', 'ring-green-500');
+          if (errorElement) errorElement.classList.add('hidden');
+        } else {
+          input.classList.remove('border-green-500', 'ring-green-500');
+          input.classList.add('border-red-500', 'ring-red-500');
+          if (errorElement) errorElement.classList.remove('hidden');
+        }
+      } else {
+        // Sin valor, quitar estilos de validación
+        input.classList.remove('border-red-500', 'ring-red-500', 'border-green-500', 'ring-green-500');
+        if (errorElement) errorElement.classList.add('hidden');
+      }
+      
+      return esValido;
+    }
+
+    /**
+     * Valida todo el formulario del pagador
+     */
+    function validarFormularioPagador() {
+      const campos = ['nombre_pagador', 'email_pagador', 'telefono_pagador', 'direccion_pagador'];
+      let formularioValido = true;
+      let primerCampoInvalido = null;
+      
+      campos.forEach(campoId => {
+        const input = document.getElementById(campoId);
+        if (input) {
+          const esValido = validarCampoPagador(input);
+          if (!esValido && !primerCampoInvalido) {
+            primerCampoInvalido = input;
+          }
+          if (!esValido) {
+            formularioValido = false;
+          }
+        }
+      });
+      
+      // Hacer scroll y focus al primer campo inválido
+      if (primerCampoInvalido) {
+        primerCampoInvalido.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        primerCampoInvalido.focus();
+      }
+      
+      return formularioValido;
+    }
 
     let multasAbiertas = true;
 
@@ -524,15 +619,16 @@
         return;
       }
 
-      const nombrePagador = document.getElementById('nombre_pagador').value;
-      const emailPagador = document.getElementById('email_pagador').value;
-      const telefonoPagador = document.getElementById('telefono_pagador').value;
-      const direccionPagador = document.getElementById('direccion_pagador').value;
-
-      if (!nombrePagador || !emailPagador || !telefonoPagador || !direccionPagador) {
-        alert('Por favor, complete todos los datos del pagador.');
+      // Validar formulario del pagador con la nueva función
+      if (!validarFormularioPagador()) {
+        alert('Por favor, complete correctamente todos los datos del pagador.');
         return;
       }
+
+      const nombrePagador = document.getElementById('nombre_pagador').value.trim();
+      const emailPagador = document.getElementById('email_pagador').value.trim();
+      const telefonoPagador = document.getElementById('telefono_pagador').value.trim();
+      const direccionPagador = document.getElementById('direccion_pagador').value.trim();
 
       // Preparar datos para el modal
       const items = [];
@@ -636,15 +732,17 @@
         return;
       }
 
-      const nombrePagador = document.getElementById('nombre_pagador').value;
-      const emailPagador = document.getElementById('email_pagador').value;
-      const telefonoPagador = document.getElementById('telefono_pagador').value;
-      const direccionPagador = document.getElementById('direccion_pagador').value;
-
-      if (!nombrePagador || !emailPagador || !telefonoPagador || !direccionPagador) {
-        alert('Por favor, complete todos los datos del pagador.');
+      // Validar formulario del pagador
+      if (!validarFormularioPagador()) {
+        cerrarModal();
+        alert('Por favor, complete correctamente todos los datos del pagador.');
         return;
       }
+
+      const nombrePagador = document.getElementById('nombre_pagador').value.trim();
+      const emailPagador = document.getElementById('email_pagador').value.trim();
+      const telefonoPagador = document.getElementById('telefono_pagador').value.trim();
+      const direccionPagador = document.getElementById('direccion_pagador').value.trim();
 
       // Crear formulario para enviar datos
       const form = document.createElement('form');
