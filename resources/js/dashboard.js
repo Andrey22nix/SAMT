@@ -361,36 +361,8 @@ function procesarTextoComparendo(button) {
     const texto = raw.replace(/\r\n/g, '\n');
 
     // ---- Datos del cliente ----
-    // Número de documento
-    const docMatch = texto.match(/Número documento\s*\n\s*([0-9\*\.]+)/i);
-    if (docMatch) {
-        const numeroDocumento = docMatch[1].replace(/\D/g, '');
-        const docInput = document.getElementById('numero_documento');
-        if (docInput && numeroDocumento) {
-            docInput.value = numeroDocumento;
-        }
-    }
-
-    // Nombres
-    const nombresMatch = texto.match(/Nombres\s*\n\s*([A-ZÑÁÉÍÓÚ\*\s]+)/i);
-    const apellidosMatch = texto.match(/Apellidos\s*\n\s*([A-ZÑÁÉÍÓÚ\*\s]+)/i);
-    let nombres = nombresMatch ? nombresMatch[1].trim() : '';
-    let apellidos = apellidosMatch ? apellidosMatch[1].trim() : '';
-
-    // Limpiar múltiples espacios y asteriscos
-    const limpiarNombre = (str) =>
-        str
-            .replace(/\s+/g, ' ')
-            .replace(/\*/g, '')
-            .trim();
-
-    nombres = limpiarNombre(nombres);
-    apellidos = limpiarNombre(apellidos);
-
-    const nombreCompletoInput = document.getElementById('nombre');
-    if (nombreCompletoInput && (nombres || apellidos)) {
-        nombreCompletoInput.value = (nombres + ' ' + apellidos).trim();
-    }
+    // A petición, ya NO se autocompletan ni el número de documento
+    // ni el nombre del infractor. El usuario los diligencia manualmente.
 
     // Helper para encontrar inputs dentro de la multa actual
     function setInputPorSufijo(nombreSufijo, valor) {
