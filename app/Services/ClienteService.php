@@ -73,7 +73,9 @@ class ClienteService
 
         // Fecha de resolución (created_at de la primera multa)
         $primeraMulta = $cliente->multas()->orderBy('created_at')->first();
-        $fechaResolucion = $primeraMulta ? $primeraMulta->created_at->format('Y-m-d') : now()->format('Y-m-d');
+        $fechaResolucionString = $primeraMulta ? $primeraMulta->created_at->format('Y-m-d') : now()->format('Y-m-d');
+        // Convertir a Carbon para poder hacer cálculos de meses
+        $fechaResolucion = Carbon::parse($fechaResolucionString);
 
         // Primera cuota
         $porcentajePrimera = $cliente->porcentaje_primera_cuota ?? 30;
@@ -88,35 +90,33 @@ class ClienteService
 
         $valorBaseCuotaRestante = $resto / $numeroCuotasRestantes;
 
-        // Fecha base (próximo mes, día 6)
-        $fechaBase = now()->addMonth()->day(6);
-
         $cuotasData = [];
 
-        // Primera cuota (redondeada)
+        // Primera cuota (redondeada) - usa la fecha de resolución directamente
         $primeraCuotaRedondeada = round($primeraCuota, 2);
         $cuotasData[] = [
             'cliente_id'       => $cliente->id,
             'numero_cuota'     => 1,
             'valor_cuota'      => $primeraCuotaRedondeada,
-            'fecha_pago'       => $fechaBase,
-            'fecha_resolucion' => $fechaResolucion,
+            'fecha_pago'       => $fechaResolucion->format('Y-m-d'),
+            'fecha_resolucion' => $fechaResolucionString,
             'estado'           => 'pendiente',
         ];
 
         $sumaAcumulada = $primeraCuotaRedondeada;
 
-        // Cuotas intermedias
+        // Cuotas intermedias - cada una suma un mes desde la fecha de resolución
         for ($i = 2; $i < $cliente->numero_cuotas; $i++) {
-            $fechaPago = $fechaBase->copy()->addMonths($i - 1);
+            // Sumar (i-1) meses desde la fecha de resolución para mantener el mismo día del mes
+            $fechaPago = $fechaResolucion->copy()->addMonths($i - 1);
             $valorCuotaRedondeada = round($valorBaseCuotaRestante, 2);
 
             $cuotasData[] = [
                 'cliente_id'       => $cliente->id,
                 'numero_cuota'     => $i,
                 'valor_cuota'      => $valorCuotaRedondeada,
-                'fecha_pago'       => $fechaPago,
-                'fecha_resolucion' => $fechaResolucion,
+                'fecha_pago'       => $fechaPago->format('Y-m-d'),
+                'fecha_resolucion' => $fechaResolucionString,
                 'estado'           => 'pendiente',
             ];
 
@@ -125,14 +125,15 @@ class ClienteService
 
         // Última cuota ajustada para cuadrar total
         $ultimaCuota = $totalMultas - $sumaAcumulada;
-        $fechaPagoUltima = $fechaBase->copy()->addMonths($cliente->numero_cuotas - 1);
+        // Sumar (numero_cuotas - 1) meses desde la fecha de resolución
+        $fechaPagoUltima = $fechaResolucion->copy()->addMonths($cliente->numero_cuotas - 1);
 
         $cuotasData[] = [
             'cliente_id'       => $cliente->id,
             'numero_cuota'     => $cliente->numero_cuotas,
             'valor_cuota'      => round($ultimaCuota, 2),
-            'fecha_pago'       => $fechaPagoUltima,
-            'fecha_resolucion' => $fechaResolucion,
+            'fecha_pago'       => $fechaPagoUltima->format('Y-m-d'),
+            'fecha_resolucion' => $fechaResolucionString,
             'estado'           => 'pendiente',
         ];
 
