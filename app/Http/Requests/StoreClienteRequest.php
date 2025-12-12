@@ -24,7 +24,7 @@ class StoreClienteRequest extends FormRequest
             'multas'                    => ['required', 'array', 'min:1'],
             'multas.*.placa'            => ['required', 'string', 'max:10'],
             'multas.*.valor'            => ['required', 'numeric', 'min:0'],
-            'multas.*.infracciones'     => ['required', 'string', 'max:255'],
+            'multas.*.infracciones'     => ['required', 'string'],
             'multas.*.departamento'     => ['required', 'string', 'max:100'],
             'multas.*.fecha'            => ['required', 'string', 'max:50'],
             'multas.*.comparendo'       => ['required', 'string', 'max:50'],
