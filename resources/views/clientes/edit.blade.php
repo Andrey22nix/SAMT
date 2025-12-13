@@ -179,8 +179,8 @@
                 </div>
             </div>
 
-            <!-- Sección Forma de Pago (solo si hay más de una multa) -->
-            <div id="formaPagoSection" class="mb-8 {{ $cliente->multas->count() > 1 ? '' : 'hidden' }}">
+            <!-- Sección Forma de Pago -->
+            <div id="formaPagoSection" class="mb-8 {{ $cliente->multas->count() >= 1 ? '' : 'hidden' }}">
                 <h4 class="text-xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-3">Forma de Pago</h4>
                 
                 <div class="bg-blue-50 p-6 rounded-lg mb-6">
@@ -238,8 +238,11 @@
         const multas = multasContainer.querySelectorAll('.multa-item');
         window.multaCounter = multas.length;
         
+        // Verificar y mostrar forma de pago
+        verificarFormaPago();
+        
         // Calcular cuotas al cargar si hay forma de pago
-        @if($cliente->multas->count() > 1 && $cliente->forma_pago)
+        @if($cliente->multas->count() >= 1 && $cliente->forma_pago)
             setTimeout(() => {
                 calcularCuotas();
             }, 100);

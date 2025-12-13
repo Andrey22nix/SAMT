@@ -196,7 +196,7 @@ class ClienteService
             $cliente->load('multas');
 
             // Gestionar forma de pago
-            if (count($data['multas']) > 1 && ! empty($data['forma_pago'])) {
+            if (count($data['multas']) >= 1 && ! empty($data['forma_pago'])) {
                 $this->actualizarFormaPago($cliente, $data);
             } else {
                 $this->limpiarFormaPago($cliente);
@@ -264,7 +264,7 @@ class ClienteService
             $cliente->load('multas');
 
             // Gestionar forma de pago
-            if (count($data['multas']) > 1 && ! empty($data['forma_pago'])) {
+            if (count($data['multas']) >= 1 && ! empty($data['forma_pago'])) {
                 $this->actualizarFormaPago($cliente, $data);
             } else {
                 $this->limpiarFormaPago($cliente);

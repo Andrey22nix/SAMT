@@ -179,8 +179,8 @@
                 </div>
             </div>
 
-            <!-- Sección Forma de Pago (solo si hay más de una multa) -->
-            <div id="formaPagoSection" class="mb-8 hidden">
+            <!-- Sección Forma de Pago (visible desde una multa) -->
+            <div id="formaPagoSection" class="mb-8">
                 <h4 class="text-xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-3">Forma de Pago</h4>
                 
                 <div class="bg-blue-50 p-6 rounded-lg mb-6">
@@ -230,5 +230,30 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Inicializar forma de pago al cargar la página
+    // La sección debe estar SIEMPRE visible desde una multa
+    document.addEventListener('DOMContentLoaded', function() {
+        const formaPagoSection = document.getElementById('formaPagoSection');
+        if (formaPagoSection) {
+            // Forzar que esté visible siempre (siempre hay al menos 1 multa en create)
+            formaPagoSection.classList.remove('hidden');
+            formaPagoSection.style.display = '';
+        }
+        
+        // Llamar a verificarFormaPago si está disponible (con retraso para asegurar que el DOM esté listo)
+        setTimeout(function() {
+            if (typeof verificarFormaPago === 'function') {
+                verificarFormaPago();
+            }
+            // Asegurar nuevamente que esté visible después de verificar
+            if (formaPagoSection) {
+                formaPagoSection.classList.remove('hidden');
+                formaPagoSection.style.display = '';
+            }
+        }, 50);
+    });
+</script>
 @endsection
 

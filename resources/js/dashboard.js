@@ -14,14 +14,26 @@ function verificarFormaPago() {
     const multas = document.querySelectorAll('.multa-item');
     const formaPagoSection = document.getElementById('formaPagoSection');
     
-    if (multas.length > 1) {
+    if (!formaPagoSection) {
+        return; // Si no existe el elemento, salir
+    }
+    
+    // Siempre mostrar la sección si hay al menos 1 multa (desde una multa)
+    if (multas.length >= 1) {
         formaPagoSection.classList.remove('hidden');
+        formaPagoSection.style.display = ''; // Asegurar que esté visible
     } else {
+        // Solo ocultar si realmente no hay multas (0 multas)
         formaPagoSection.classList.add('hidden');
-        document.getElementById('forma_pago').value = '';
-        document.getElementById('numero_cuotas').value = '';
-        document.getElementById('porcentaje_primera_cuota').value = '30';
-        document.getElementById('resumenCuotas').classList.add('hidden');
+        const formaPago = document.getElementById('forma_pago');
+        const numeroCuotas = document.getElementById('numero_cuotas');
+        const porcentajePrimera = document.getElementById('porcentaje_primera_cuota');
+        const resumenCuotas = document.getElementById('resumenCuotas');
+        
+        if (formaPago) formaPago.value = '';
+        if (numeroCuotas) numeroCuotas.value = '';
+        if (porcentajePrimera) porcentajePrimera.value = '30';
+        if (resumenCuotas) resumenCuotas.classList.add('hidden');
     }
 }
 
@@ -242,6 +254,13 @@ function agregarMulta() {
     multaCounter++;
     verificarFormaPago();
     
+    // Asegurar que la sección de forma de pago esté visible
+    const formaPagoSection = document.getElementById('formaPagoSection');
+    if (formaPagoSection) {
+        formaPagoSection.classList.remove('hidden');
+        formaPagoSection.style.display = '';
+    }
+    
     // Mostrar botón eliminar en la primera multa si hay más de una
     const primeraMulta = container.querySelector('.multa-item');
     if (container.querySelectorAll('.multa-item').length > 1) {
@@ -261,6 +280,13 @@ function eliminarMulta(button) {
         multaItem.remove();
         verificarFormaPago();
         calcularCuotas();
+        
+        // Asegurar que la sección de forma de pago esté visible (siempre hay al menos 1 multa después de eliminar)
+        const formaPagoSection = document.getElementById('formaPagoSection');
+        if (formaPagoSection) {
+            formaPagoSection.classList.remove('hidden');
+            formaPagoSection.style.display = '';
+        }
         
         // Renumerar las multas
         const multasRestantes = container.querySelectorAll('.multa-item');

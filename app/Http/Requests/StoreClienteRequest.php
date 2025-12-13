@@ -32,7 +32,7 @@ class StoreClienteRequest extends FormRequest
             'multas.*.secretaria'       => ['required', 'string', 'max:255'],
             'multas.*.codigo_infraccion'=> ['required', 'string', 'max:50'],
 
-            // Forma de pago (solo si hay más de una multa)
+            // Forma de pago
             'forma_pago'               => ['nullable', 'string', Rule::in(['pago_unico', 'acuerdo_pago'])],
             'numero_cuotas'            => ['nullable', 'integer', 'min:2', 'required_if:forma_pago,acuerdo_pago'],
             'porcentaje_primera_cuota' => ['nullable', 'numeric', 'min:1', 'max:100', 'required_if:forma_pago,acuerdo_pago'],
