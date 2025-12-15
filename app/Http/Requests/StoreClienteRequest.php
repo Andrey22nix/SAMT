@@ -34,7 +34,7 @@ class StoreClienteRequest extends FormRequest
 
             // Forma de pago
             'forma_pago'               => ['nullable', 'string', Rule::in(['pago_unico', 'acuerdo_pago'])],
-            'numero_cuotas'            => ['nullable', 'integer', 'min:2', 'required_if:forma_pago,acuerdo_pago'],
+            'numero_cuotas'            => ['nullable', 'integer', 'min:1', 'required_if:forma_pago,acuerdo_pago'],
             'porcentaje_primera_cuota' => ['nullable', 'numeric', 'min:1', 'max:100', 'required_if:forma_pago,acuerdo_pago'],
         ];
     }
