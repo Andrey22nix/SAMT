@@ -322,6 +322,8 @@
         </div>
       </div>
 
+      <img src="{{ asset('PAGOS.jpg') }}" alt="Formas de pago" style="max-width: 100%; height: 220px; margin-top: 20px;">
+
       <p id="reference" style="display: none;">Código de Referencia: <strong id="referenceCode">-</strong></p>
       <div id="paymentWaiting" style="display: none;">Esperando pago... <span class="small-spinner"></span></div>
     </div>
