@@ -279,7 +279,16 @@
         @endforeach
       @endif
     </div>
-    <div id="discountContainer"></div>
+    <div id="discountContainer">
+      @if(isset($esPagoMultas) && $esPagoMultas && isset($cliente) && $cliente->forma_pago === 'pago_unico' && isset($descuentoAplicado) && $descuentoAplicado > 0)
+        <div class="summary-box" style="background-color: #fff3cd; margin-bottom: 10px;">
+          <span><strong>Total original:</strong> ${{ number_format($totalOriginal, 0, ',', '.') }}</span>
+        </div>
+        <div class="summary-box" style="background-color: #d1ecf1; margin-bottom: 10px;">
+          <span><strong>Descuento Pago Único ({{ number_format($cliente->descuento_pago_unico, 2, ',', '.') }}%):</strong> -${{ number_format($descuentoAplicado, 0, ',', '.') }}</span>
+        </div>
+      @endif
+    </div>
     <div class="summary-box">
       <span>Total a Pagar: <strong id="totalPagar">${{ number_format($total, 0, ',', '.') }}</strong></span>
     </div>
@@ -475,14 +484,23 @@
       
       mensaje += '\n';
       
-      // Calcular total
-      const total = itemsData.reduce(function(sum, item) {
-        return sum + parseFloat(item.valor);
-      }, 0);
+      // Usar el total con descuento aplicado desde el servidor
+      const totalConDescuento = {{ $total }};
       const totalFormateado = new Intl.NumberFormat('es-CO', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(total);
+      }).format(totalConDescuento);
+      
+      @if(isset($descuentoAplicado) && $descuentoAplicado > 0)
+        mensaje += 'Total original: $' + new Intl.NumberFormat('es-CO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format({{ $totalOriginal }}) + '\n';
+        mensaje += 'Descuento Pago Único ({{ number_format($cliente->descuento_pago_unico, 2, ',', '.') }}%): -$' + new Intl.NumberFormat('es-CO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format({{ $descuentoAplicado }}) + '\n';
+      @endif
       
       mensaje += 'Total a Pagar: $' + totalFormateado + '\n';
       mensaje += 'Código de Referencia: ' + referenceCode;

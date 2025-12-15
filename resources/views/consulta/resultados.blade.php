@@ -190,10 +190,25 @@
             </div>
 
             <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p class="text-sm text-gray-700">
-                <strong>Total multas a pagar:</strong>
-                <span class="text-lg font-bold text-gray-900">${{ number_format($multasPendientes, 0, ',', '.') }}</span>
-              </p>
+              @if($cliente->forma_pago === 'pago_unico' && isset($descuentoAplicado) && $descuentoAplicado > 0)
+                <p class="text-sm text-gray-700">
+                  <strong>Total multas a pagar (sin descuento):</strong>
+                  <span class="text-lg font-bold text-gray-600 line-through">${{ number_format($multasPendientes, 0, ',', '.') }}</span>
+                </p>
+                <p class="text-sm text-gray-700 mt-2">
+                  <strong>Descuento Pago Único ({{ number_format($cliente->descuento_pago_unico, 2, ',', '.') }}%):</strong>
+                  <span class="text-lg font-bold text-green-600">-${{ number_format($descuentoAplicado, 0, ',', '.') }}</span>
+                </p>
+                <p class="text-sm text-gray-700 mt-2">
+                  <strong>Total multas a pagar (con descuento):</strong>
+                  <span class="text-lg font-bold text-gray-900">${{ number_format($multasPendientesConDescuento, 0, ',', '.') }}</span>
+                </p>
+              @else
+                <p class="text-sm text-gray-700">
+                  <strong>Total multas a pagar:</strong>
+                  <span class="text-lg font-bold text-gray-900">${{ number_format($multasPendientes, 0, ',', '.') }}</span>
+                </p>
+              @endif
               <p class="text-sm text-gray-700 mt-2">
                 <strong>Cantidad de multas sin pagar:</strong>
                 <span class="text-lg font-bold text-gray-900">{{ $cliente->multas->where('estado_pago', '!=', 'pagado')->count() }}</span>
@@ -443,6 +458,10 @@
     // Variables globales con totales
     const totalMultas = {{ $totalMultas }};
     const totalCuotasPendientes = {{ $cuotas->where('estado', 'pendiente')->count() }};
+    // Variables para descuento
+    const formaPago = @json($cliente->forma_pago ?? null);
+    const descuentoPagoUnico = {{ $cliente->descuento_pago_unico ?? 0 }};
+    const tieneDescuento = formaPago === 'pago_unico' && descuentoPagoUnico > 0;
 
     // ========== VALIDACIÓN DE CAMPOS DEL PAGADOR ==========
     
@@ -552,6 +571,7 @@
       // Sumar cuotas seleccionadas
       const cuotasSeleccionadas = document.querySelectorAll('.cuota-checkbox:checked');
       let total = 0;
+      let esPagoMultas = false;
 
       cuotasSeleccionadas.forEach(checkbox => {
         if (checkbox.checked) {
@@ -575,10 +595,18 @@
             }
           }
         });
+        esPagoMultas = multasSeleccionadas.length > 0;
       }
 
-      // Formatear el total sin decimales y con puntos como separadores de miles
-      const totalRedondeado = Math.round(total);
+      // Aplicar descuento si es pago único de multas y hay descuento configurado
+      let totalConDescuento = total;
+      if (esPagoMultas && tieneDescuento) {
+        const descuento = total * (descuentoPagoUnico / 100);
+        totalConDescuento = total - descuento;
+      }
+
+      // Formatear el total con descuento aplicado (si corresponde)
+      const totalRedondeado = Math.round(totalConDescuento);
       const totalFormateado = totalRedondeado.toLocaleString('es-CO', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
@@ -633,6 +661,7 @@
       // Preparar datos para el modal
       const items = [];
       let total = 0;
+      let esPagoMultasModal = false;
 
       if (cuotasCheckboxes.length > 0) {
         cuotasCheckboxes.forEach(checkbox => {
@@ -657,6 +686,7 @@
         items.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
       } else {
         // Pago directo de multas (solo se permite cuando hay una)
+        esPagoMultasModal = true;
         multasCheckboxes.forEach(checkbox => {
           const placa = checkbox.getAttribute('data-placa');
           const comparendo = checkbox.getAttribute('data-comparendo');
@@ -676,11 +706,18 @@
         });
       }
 
+      // Aplicar descuento si es pago único de multas y hay descuento configurado
+      let totalConDescuento = total;
+      if (esPagoMultasModal && tieneDescuento) {
+        const descuento = total * (descuentoPagoUnico / 100);
+        totalConDescuento = total - descuento;
+      }
+
       // Mostrar modal
-      mostrarModal(items, total);
+      mostrarModal(items, total, totalConDescuento, esPagoMultasModal);
     }
 
-    function mostrarModal(items, total) {
+    function mostrarModal(items, total, totalConDescuento, esPagoMultas) {
       const listaItems = document.getElementById('listaItems');
       const totalModal = document.getElementById('totalModal');
       const modal = document.getElementById('modalConfirmacion');
@@ -705,11 +742,34 @@
         listaItems.appendChild(li);
       });
 
-      // Mostrar total
+      // Mostrar información de descuento si aplica
+      if (esPagoMultas && tieneDescuento && totalConDescuento < total) {
+        const totalOriginalFormateado = new Intl.NumberFormat('es-CO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(total);
+        const descuentoFormateado = new Intl.NumberFormat('es-CO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(total - totalConDescuento);
+        
+        const descuentoLi = document.createElement('li');
+        descuentoLi.className = 'text-gray-700 py-1 mt-2 border-t pt-2';
+        descuentoLi.innerHTML = `<strong>Total original:</strong> $${totalOriginalFormateado}`;
+        listaItems.appendChild(descuentoLi);
+        
+        const descuentoLi2 = document.createElement('li');
+        descuentoLi2.className = 'text-green-600 py-1';
+        descuentoLi2.innerHTML = `<strong>Descuento Pago Único (${descuentoPagoUnico.toFixed(2)}%):</strong> -$${descuentoFormateado}`;
+        listaItems.appendChild(descuentoLi2);
+      }
+
+      // Mostrar total con descuento aplicado (si corresponde)
+      const totalFinal = esPagoMultas && tieneDescuento ? totalConDescuento : total;
       const totalFormateado = new Intl.NumberFormat('es-CO', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(total);
+      }).format(totalFinal);
       totalModal.textContent = '$' + totalFormateado;
 
       // Mostrar modal

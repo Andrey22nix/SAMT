@@ -50,8 +50,22 @@ function calcularTotal() {
 function calcularCuotas() {
     const formaPago = document.getElementById('forma_pago').value;
     const total = calcularTotal();
+    const descuentoInput = document.getElementById('descuento_pago_unico');
+    let descuentoPorcentaje = 0;
+
+    if (formaPago === 'pago_unico' && descuentoInput) {
+        descuentoPorcentaje = parseFloat(descuentoInput.value) || 0;
+        if (descuentoPorcentaje < 0) descuentoPorcentaje = 0;
+        if (descuentoPorcentaje > 100) descuentoPorcentaje = 100;
+        descuentoInput.value = descuentoPorcentaje.toString();
+    }
+
+    let totalConDescuento = total;
+    if (formaPago === 'pago_unico' && descuentoPorcentaje > 0) {
+        totalConDescuento = total * (1 - descuentoPorcentaje / 100);
+    }
     
-    document.getElementById('totalPagar').textContent = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('totalPagar').textContent = '$' + totalConDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     
     if (formaPago === 'acuerdo_pago') {
         const numeroCuotas = parseInt(document.getElementById('numero_cuotas').value) || 0;
@@ -121,12 +135,32 @@ function calcularCuotas() {
         }
     } else if (formaPago === 'pago_unico') {
         const detalleCuotas = document.getElementById('detalleCuotas');
-        detalleCuotas.innerHTML = `
-            <div class="flex justify-between items-center p-3 bg-green-50 rounded border border-green-200">
-                <span class="font-medium">Pago Único:</span>
-                <span class="font-bold text-green-700">$${total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        const descuentoValor = total - totalConDescuento;
+
+        let html = `
+            <div class="flex justify-between items-center p-3 bg-blue-50 rounded border border-blue-200">
+                <span class="font-medium">Total original:</span>
+                <span class="font-bold text-blue-700">$${total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </div>
         `;
+
+        if (descuentoPorcentaje > 0 && descuentoValor > 0) {
+            html += `
+            <div class="flex justify-between items-center p-3 bg-yellow-50 rounded border border-yellow-200">
+                <span class="font-medium">Descuento (${descuentoPorcentaje}%):</span>
+                <span class="font-bold text-yellow-700">-$${descuentoValor.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+            `;
+        }
+
+        html += `
+            <div class="flex justify-between items-center p-3 bg-green-50 rounded border border-green-200">
+                <span class="font-medium">Pago Único:</span>
+                <span class="font-bold text-green-700">$${totalConDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+        `;
+
+        detalleCuotas.innerHTML = html;
         document.getElementById('resumenCuotas').classList.remove('hidden');
     } else {
         document.getElementById('resumenCuotas').classList.add('hidden');
@@ -137,13 +171,20 @@ function actualizarFormaPago() {
     const formaPago = document.getElementById('forma_pago').value;
     const numeroCuotasDiv = document.getElementById('numeroCuotasDiv');
     const porcentajePrimeraDiv = document.getElementById('porcentajePrimeraDiv');
+    const descuentoPagoUnicoDiv = document.getElementById('descuentoPagoUnicoDiv');
     
     if (formaPago === 'acuerdo_pago') {
         numeroCuotasDiv.classList.remove('hidden');
         porcentajePrimeraDiv.classList.remove('hidden');
+        if (descuentoPagoUnicoDiv) descuentoPagoUnicoDiv.classList.add('hidden');
+    } else if (formaPago === 'pago_unico') {
+        numeroCuotasDiv.classList.add('hidden');
+        porcentajePrimeraDiv.classList.add('hidden');
+        if (descuentoPagoUnicoDiv) descuentoPagoUnicoDiv.classList.remove('hidden');
     } else {
         numeroCuotasDiv.classList.add('hidden');
         porcentajePrimeraDiv.classList.add('hidden');
+        if (descuentoPagoUnicoDiv) descuentoPagoUnicoDiv.classList.add('hidden');
     }
     
     calcularCuotas();

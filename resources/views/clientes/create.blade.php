@@ -203,6 +203,20 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Porcentaje Primera Cuota (%) *</label>
                             <input type="number" name="porcentaje_primera_cuota" id="porcentaje_primera_cuota" min="1" max="100" step="0.01" value="30" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()">
                         </div>
+
+                        <div id="descuentoPagoUnicoDiv" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descuento Pago Único (%)</label>
+                            <input
+                                type="number"
+                                name="descuento_pago_unico"
+                                id="descuento_pago_unico"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value="0"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="calcularCuotas()">
+                        </div>
                     </div>
                 </div>
 
