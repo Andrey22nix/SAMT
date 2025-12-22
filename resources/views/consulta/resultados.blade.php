@@ -157,6 +157,12 @@
     
     <!-- Línea de colores -->
     <div class="header-line"></div>
+    
+    <!-- Subheader con logos -->
+    <div class="subheader-layer">
+      <img src="{{ asset('fcm-logo.png') }}" alt="Federación Colombiana de Municipios" style="max-height: 60px;">
+      <img src="{{ asset('small-image.png') }}" alt="SIMIT" style="max-height: 60px;" onerror="this.style.display='none'">
+    </div>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
 
