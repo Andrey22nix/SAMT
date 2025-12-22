@@ -296,38 +296,45 @@
       <h3>Método de Pago - Código QR</h3>
       <div id="qrLoader" class="spinner" style="display: none;"></div>
 
-      {{-- Tarjeta estilo instructivo con espacio para el QR, usando los logos del proyecto --}}
-      <div style="display: inline-block; background: #ffffff; border-radius: 22px; border: 3px solid #0054a6; padding: 22px 24px; max-width: 280px; text-align: center; font-family: Arial, sans-serif; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
-        {{-- Encabezado con logo Redeban --}}
-        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-          <img src="{{ asset('R8.png') }}" alt="Redeban" style="max-width: 150px; height: auto;">
+      {{-- Contenedor principal con logos a los lados del QR --}}
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px 40px;">
+        {{-- Logo FCM a la izquierda --}}
+        <div style="display: flex; align-items: center; justify-content: flex-start; flex: 0 0 auto;">
+          <img src="{{ asset('fcm-logo.png') }}" alt="Federación Colombiana de Municipios" style="max-height: 150px; width: auto;">
         </div>
 
-        {{-- Contenedor cuadrado donde se dibuja el código QR --}}
-        <div style="margin: 12px auto 18px auto; width: 190px; height: 190px; border: 4px solid #0054a6; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #ffffff;">
-          <img
-            id="qrImage"
-            src="{{ $qrImageUrl ?? '' }}"
-            alt="Código QR de Pago"
-            style="display: none; width: 100%; height: 100%; object-fit: contain;"
-          >
+        {{-- Tarjeta estilo instructivo con espacio para el QR --}}
+        <div style="display: inline-block; background: #ffffff; border-radius: 22px; border: 3px solid #0054a6; padding: 22px 24px; max-width: 280px; text-align: center; font-family: Arial, sans-serif; box-shadow: 0 3px 8px rgba(0,0,0,0.08); flex: 0 0 auto; margin: 0 80px;">
+          {{-- Encabezado con logo Redeban --}}
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <img src="{{ asset('R8.png') }}" alt="Redeban" style="max-width: 150px; height: auto;">
+          </div>
+
+          {{-- Contenedor cuadrado donde se dibuja el código QR --}}
+          <div style="margin: 12px auto 18px auto; width: 190px; height: 190px; border: 4px solid #0054a6; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #ffffff;">
+            <img
+              id="qrImage"
+              src="{{ $qrImageUrl ?? '' }}"
+              alt="Código QR de Pago"
+              style="display: none; width: 100%; height: 100%; object-fit: contain;"
+            >
+          </div>
+
+          {{-- Título e instrucciones resumidas --}}
+          <h4 style="margin: 8px 0 6px 0; font-size: 0.9rem; font-weight: 700; color: #0054a6;">
+            Cómo pagar tus multas
+          </h4>
+          <ol style="margin: 4px 0 0 18px; padding: 0; text-align: left; font-size: 0.75rem; color: #333; line-height: 1.3;">
+            <li>Abre tu app bancaria o billetera digital y elige pagar con QR.</li>
+            <li>Escanea este código QR con la cámara de tu app.</li>
+            <li>Ingresa el valor a pagar y verifica los datos.</li>
+            <li>Confirma la transacción con tu clave, huella o Face ID.</li>
+          </ol>
         </div>
 
-        {{-- Título e instrucciones resumidas --}}
-        <h4 style="margin: 8px 0 6px 0; font-size: 0.9rem; font-weight: 700; color: #0054a6;">
-          Cómo pagar tus multas
-        </h4>
-        <ol style="margin: 4px 0 0 18px; padding: 0; text-align: left; font-size: 0.75rem; color: #333; line-height: 1.3;">
-          <li>Abre tu app bancaria o billetera digital y elige pagar con QR.</li>
-          <li>Escanea este código QR con la cámara de tu app.</li>
-          <li>Ingresa el valor a pagar y verifica los datos.</li>
-          <li>Confirma la transacción con tu clave, huella o Face ID.</li>
-        </ol>
-
-        {{-- Franja inferior con logos Federación y SIMIT --}}
-        <div style="margin-top: 16px; padding-top: 10px; border-top: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; gap: 16px;">
-          <img src="{{ asset('fcm-logo.png') }}" alt="Federación Colombiana de Municipios" style="max-height: 34px; width: auto;">
-          <img src="{{ asset('small-image.png') }}" alt="SIMIT" style="max-height: 38px; width: auto;">
+        {{-- Logo SIMIT a la derecha --}}
+        <div style="display: flex; align-items: center; justify-content: flex-end; flex: 0 0 auto;">
+          <img src="{{ asset('small-image.png') }}" alt="SIMIT" style="max-height: 150px; width: auto;" onerror="this.style.display='none'">
         </div>
       </div>
 
