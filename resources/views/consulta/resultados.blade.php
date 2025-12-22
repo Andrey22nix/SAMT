@@ -10,6 +10,56 @@
   <style>
     body {
       font-family: 'Open Sans', sans-serif;
+      margin: 0;
+    }
+    header {
+      background-color: #003087;
+      padding: 1em;
+      text-align: center;
+    }
+    .header-contacts {
+      display: flex;
+      justify-content: center;
+      gap: 1.5em;
+      color: white;
+      font-size: 1em;
+      margin-top: 1em;
+      flex-wrap: nowrap;
+    }
+    .header-contacts a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .header-contacts a:hover {
+      color: #00a651;
+    }
+    .subheader-layer {
+      background-color: white;
+      padding: 0.5em;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1em;
+      flex-direction: row;
+      flex-wrap: nowrap;
+    }
+    .subheader-layer img {
+      width: auto;
+      height: auto;
+      max-height: 60px;
+    }
+    .header-line {
+      height: 4px;
+      background: linear-gradient(
+        to right,
+        #FFC107 33.33%, /* Yellow */
+        #003F8C 33.33%, /* Blue */
+        #003F8C 66.66%, /* Blue */
+        #D81B60 66.66%  /* Red */
+      );
+      width: 100%;
     }
     .payment-bar {
       position: fixed;
@@ -67,19 +117,51 @@
         opacity: 1;
       }
     }
+    /* Asegurar que los checkboxes siempre sean visibles */
+    .cuota-checkbox,
+    #selectAllCuotas,
+    .multa-checkbox {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: 18px !important;
+      height: 18px !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+    }
+    .cuota-checkbox:disabled,
+    .multa-checkbox:disabled {
+      opacity: 0.6 !important;
+      cursor: not-allowed !important;
+    }
   </style>
 </head>
 <body class="bg-gray-50">
   <div class="min-h-screen pb-32">
-    <!-- Header -->
-    <header class="bg-blue-900 text-white py-4">
-      <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-xl font-bold">SIMIT - Consulta de Infracciones</h1>
-          <a href="{{ route('welcome') }}" class="text-white hover:text-green-300">Nueva Consulta</a>
-        </div>
+    <!-- Header con contactos -->
+    <header>
+      <div class="header-contacts">
+        <a href="https://wa.me/+573232135571" target="_blank">WhatsApp: 323 2135571</a>
+        <a href="tel:+576012365410">Teléfono: (601) 2365410</a>
       </div>
     </header>
+    
+    <!-- Header de navegación -->
+    <div class="bg-blue-900 text-white py-2">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-end items-center">
+          <a href="{{ route('welcome') }}" class="text-white hover:text-green-300 text-sm font-semibold">Nueva Consulta</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Subheader con logos -->
+    <div class="subheader-layer">
+      <img src="{{ asset('fcm-logo.png') }}" alt="Federación Colombiana de Municipios" style="max-height: 60px;">
+      <img src="{{ asset('small-image.png') }}" alt="SIMIT" style="max-height: 60px;" onerror="this.style.display='none'">
+    </div>
+    <!-- Línea de colores -->
+    <div class="header-line"></div>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
 
@@ -133,13 +215,11 @@
                   @foreach($cliente->multas as $multa)
                     <tr class="hover:bg-gray-50 multa-row" id="multa-row-{{ $multa->id }}">
                       <td class="px-4 py-4 whitespace-nowrap">
-                        @php
-                          $multasPendientesCount = $cliente->multas->where('estado_pago', '!=', 'pagado')->count();
-                        @endphp
-                        @if($multasPendientesCount === 1 && $multa->estado_pago !== 'pagado' && (!isset($cliente->forma_pago) || $cliente->forma_pago !== 'acuerdo_pago'))
-                          <!-- Cuando solo hay una multa pendiente y no hay acuerdo de pago, permitir seleccionarla como pago único -->
+                        @if($multa->estado_pago !== 'pagado' && (!isset($cliente->forma_pago) || $cliente->forma_pago !== 'acuerdo_pago'))
+                          <!-- Mostrar checkbox para todas las multas pendientes cuando no hay acuerdo de pago -->
                           <input type="checkbox"
                                  class="multa-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                 style="width: 18px; height: 18px; cursor: pointer; display: block; visibility: visible; opacity: 1;"
                                  value="{{ $multa->id }}"
                                  data-valor="{{ number_format($multa->valor, 2, '.', '') }}"
                                  data-placa="{{ $multa->placa }}"
@@ -233,7 +313,7 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <input type="checkbox" id="selectAllCuotas" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" onchange="toggleAllCuotas(this)">
+                    <input type="checkbox" id="selectAllCuotas" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cuota-checkbox" onchange="toggleAllCuotas(this)">
                   </th>
                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número de Acuerdo</th>
                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número de Cuota</th>
@@ -805,9 +885,22 @@
 
     // Inicializar total al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
+      // Asegurar que todos los checkboxes sean visibles
+      document.querySelectorAll('.cuota-checkbox, #selectAllCuotas, .multa-checkbox').forEach(cb => {
+        cb.style.display = 'block';
+        cb.style.visibility = 'visible';
+        cb.style.opacity = '1';
+        cb.style.width = '18px';
+        cb.style.height = '18px';
+        cb.style.cursor = cb.disabled ? 'not-allowed' : 'pointer';
+        cb.style.pointerEvents = 'auto';
+      });
+      
       // Desmarcar todos los checkboxes de cuotas al cargar
       document.querySelectorAll('.cuota-checkbox').forEach(cb => {
-        cb.checked = false;
+        if (!cb.disabled) {
+          cb.checked = false;
+        }
       });
       // Solo marcar la primera cuota pendiente si existe
       const primeraCuotaCheckbox = document.querySelector('.cuota-checkbox:not(:disabled)');
