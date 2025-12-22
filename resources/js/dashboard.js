@@ -14,14 +14,26 @@ function verificarFormaPago() {
     const multas = document.querySelectorAll('.multa-item');
     const formaPagoSection = document.getElementById('formaPagoSection');
     
-    if (multas.length > 1) {
+    if (!formaPagoSection) {
+        return; // Si no existe el elemento, salir
+    }
+    
+    // Siempre mostrar la sección si hay al menos 1 multa (desde una multa)
+    if (multas.length >= 1) {
         formaPagoSection.classList.remove('hidden');
+        formaPagoSection.style.display = ''; // Asegurar que esté visible
     } else {
+        // Solo ocultar si realmente no hay multas (0 multas)
         formaPagoSection.classList.add('hidden');
-        document.getElementById('forma_pago').value = '';
-        document.getElementById('numero_cuotas').value = '';
-        document.getElementById('porcentaje_primera_cuota').value = '30';
-        document.getElementById('resumenCuotas').classList.add('hidden');
+        const formaPago = document.getElementById('forma_pago');
+        const numeroCuotas = document.getElementById('numero_cuotas');
+        const porcentajePrimera = document.getElementById('porcentaje_primera_cuota');
+        const resumenCuotas = document.getElementById('resumenCuotas');
+        
+        if (formaPago) formaPago.value = '';
+        if (numeroCuotas) numeroCuotas.value = '';
+        if (porcentajePrimera) porcentajePrimera.value = '30';
+        if (resumenCuotas) resumenCuotas.classList.add('hidden');
     }
 }
 
@@ -38,8 +50,22 @@ function calcularTotal() {
 function calcularCuotas() {
     const formaPago = document.getElementById('forma_pago').value;
     const total = calcularTotal();
+    const descuentoInput = document.getElementById('descuento_pago_unico');
+    let descuentoPorcentaje = 0;
+
+    if (formaPago === 'pago_unico' && descuentoInput) {
+        descuentoPorcentaje = parseFloat(descuentoInput.value) || 0;
+        if (descuentoPorcentaje < 0) descuentoPorcentaje = 0;
+        if (descuentoPorcentaje > 100) descuentoPorcentaje = 100;
+        descuentoInput.value = descuentoPorcentaje.toString();
+    }
+
+    let totalConDescuento = total;
+    if (formaPago === 'pago_unico' && descuentoPorcentaje > 0) {
+        totalConDescuento = total * (1 - descuentoPorcentaje / 100);
+    }
     
-    document.getElementById('totalPagar').textContent = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('totalPagar').textContent = '$' + totalConDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     
     if (formaPago === 'acuerdo_pago') {
         const numeroCuotas = parseInt(document.getElementById('numero_cuotas').value) || 0;
@@ -109,12 +135,32 @@ function calcularCuotas() {
         }
     } else if (formaPago === 'pago_unico') {
         const detalleCuotas = document.getElementById('detalleCuotas');
-        detalleCuotas.innerHTML = `
-            <div class="flex justify-between items-center p-3 bg-green-50 rounded border border-green-200">
-                <span class="font-medium">Pago Único:</span>
-                <span class="font-bold text-green-700">$${total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        const descuentoValor = total - totalConDescuento;
+
+        let html = `
+            <div class="flex justify-between items-center p-3 bg-blue-50 rounded border border-blue-200">
+                <span class="font-medium">Total original:</span>
+                <span class="font-bold text-blue-700">$${total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </div>
         `;
+
+        if (descuentoPorcentaje > 0 && descuentoValor > 0) {
+            html += `
+            <div class="flex justify-between items-center p-3 bg-yellow-50 rounded border border-yellow-200">
+                <span class="font-medium">Descuento (${descuentoPorcentaje}%):</span>
+                <span class="font-bold text-yellow-700">-$${descuentoValor.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+            `;
+        }
+
+        html += `
+            <div class="flex justify-between items-center p-3 bg-green-50 rounded border border-green-200">
+                <span class="font-medium">Pago Único:</span>
+                <span class="font-bold text-green-700">$${totalConDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+        `;
+
+        detalleCuotas.innerHTML = html;
         document.getElementById('resumenCuotas').classList.remove('hidden');
     } else {
         document.getElementById('resumenCuotas').classList.add('hidden');
@@ -125,13 +171,20 @@ function actualizarFormaPago() {
     const formaPago = document.getElementById('forma_pago').value;
     const numeroCuotasDiv = document.getElementById('numeroCuotasDiv');
     const porcentajePrimeraDiv = document.getElementById('porcentajePrimeraDiv');
+    const descuentoPagoUnicoDiv = document.getElementById('descuentoPagoUnicoDiv');
     
     if (formaPago === 'acuerdo_pago') {
         numeroCuotasDiv.classList.remove('hidden');
         porcentajePrimeraDiv.classList.remove('hidden');
+        if (descuentoPagoUnicoDiv) descuentoPagoUnicoDiv.classList.add('hidden');
+    } else if (formaPago === 'pago_unico') {
+        numeroCuotasDiv.classList.add('hidden');
+        porcentajePrimeraDiv.classList.add('hidden');
+        if (descuentoPagoUnicoDiv) descuentoPagoUnicoDiv.classList.remove('hidden');
     } else {
         numeroCuotasDiv.classList.add('hidden');
         porcentajePrimeraDiv.classList.add('hidden');
+        if (descuentoPagoUnicoDiv) descuentoPagoUnicoDiv.classList.add('hidden');
     }
     
     calcularCuotas();
@@ -242,6 +295,13 @@ function agregarMulta() {
     multaCounter++;
     verificarFormaPago();
     
+    // Asegurar que la sección de forma de pago esté visible
+    const formaPagoSection = document.getElementById('formaPagoSection');
+    if (formaPagoSection) {
+        formaPagoSection.classList.remove('hidden');
+        formaPagoSection.style.display = '';
+    }
+    
     // Mostrar botón eliminar en la primera multa si hay más de una
     const primeraMulta = container.querySelector('.multa-item');
     if (container.querySelectorAll('.multa-item').length > 1) {
@@ -261,6 +321,13 @@ function eliminarMulta(button) {
         multaItem.remove();
         verificarFormaPago();
         calcularCuotas();
+        
+        // Asegurar que la sección de forma de pago esté visible (siempre hay al menos 1 multa después de eliminar)
+        const formaPagoSection = document.getElementById('formaPagoSection');
+        if (formaPagoSection) {
+            formaPagoSection.classList.remove('hidden');
+            formaPagoSection.style.display = '';
+        }
         
         // Renumerar las multas
         const multasRestantes = container.querySelectorAll('.multa-item');

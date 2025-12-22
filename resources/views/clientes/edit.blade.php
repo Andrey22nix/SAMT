@@ -179,8 +179,8 @@
                 </div>
             </div>
 
-            <!-- Sección Forma de Pago (solo si hay más de una multa) -->
-            <div id="formaPagoSection" class="mb-8 {{ $cliente->multas->count() > 1 ? '' : 'hidden' }}">
+            <!-- Sección Forma de Pago -->
+            <div id="formaPagoSection" class="mb-8 {{ $cliente->multas->count() >= 1 ? '' : 'hidden' }}">
                 <h4 class="text-xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-3">Forma de Pago</h4>
                 
                 <div class="bg-blue-50 p-6 rounded-lg mb-6">
@@ -196,12 +196,26 @@
                         
                         <div id="numeroCuotasDiv" class="{{ old('forma_pago', $cliente->forma_pago) == 'acuerdo_pago' ? '' : 'hidden' }}">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Número de Cuotas *</label>
-                            <input type="number" name="numero_cuotas" id="numero_cuotas" min="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()" value="{{ old('numero_cuotas', $cliente->numero_cuotas) }}">
+                            <input type="number" name="numero_cuotas" id="numero_cuotas" min="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()" value="{{ old('numero_cuotas', $cliente->numero_cuotas) }}">
                         </div>
                         
                         <div id="porcentajePrimeraDiv" class="{{ old('forma_pago', $cliente->forma_pago) == 'acuerdo_pago' ? '' : 'hidden' }}">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Porcentaje Primera Cuota (%) *</label>
                             <input type="number" name="porcentaje_primera_cuota" id="porcentaje_primera_cuota" min="1" max="100" step="0.01" value="{{ old('porcentaje_primera_cuota', $cliente->porcentaje_primera_cuota ?? 30) }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()">
+                        </div>
+
+                        <div id="descuentoPagoUnicoDiv" class="{{ old('forma_pago', $cliente->forma_pago) == 'pago_unico' ? '' : 'hidden' }}">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descuento Pago Único (%)</label>
+                            <input
+                                type="number"
+                                name="descuento_pago_unico"
+                                id="descuento_pago_unico"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value="{{ old('descuento_pago_unico', $cliente->descuento_pago_unico ?? 0) }}"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="calcularCuotas()">
                         </div>
                     </div>
                 </div>
@@ -238,8 +252,16 @@
         const multas = multasContainer.querySelectorAll('.multa-item');
         window.multaCounter = multas.length;
         
+        // Verificar y mostrar forma de pago
+        verificarFormaPago();
+        
+        // Actualizar campos de forma de pago al cargar
+        if (typeof actualizarFormaPago === 'function') {
+            actualizarFormaPago();
+        }
+        
         // Calcular cuotas al cargar si hay forma de pago
-        @if($cliente->multas->count() > 1 && $cliente->forma_pago)
+        @if($cliente->multas->count() >= 1 && $cliente->forma_pago)
             setTimeout(() => {
                 calcularCuotas();
             }, 100);

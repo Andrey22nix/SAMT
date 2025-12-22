@@ -13,7 +13,7 @@
                 <span>Cancelar</span>
             </a>
         </div>
-        
+
         <!-- Mensajes de error en el formulario -->
         @if ($errors->any())
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
@@ -31,12 +31,12 @@
                 <span class="block sm:inline">{{ session('error') }}</span>
             </div>
         @endif
-        
+
         <form id="multaForm" method="POST" action="{{ route('clientes.store') }}" class="bg-white rounded-lg shadow-lg p-8" data-store-url="{{ route('clientes.store') }}">
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="POST">
             <input type="hidden" name="multa_id" id="multa_id">
-            
+
             <!-- Sección Cliente -->
             <div class="mb-8">
                 <h4 class="text-xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-3">Datos del Cliente</h4>
@@ -45,7 +45,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
                         <input type="text" name="nombre" id="nombre" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="{{ old('nombre') }}">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento *</label>
                         <select name="tipo_documento" id="tipo_documento" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -57,7 +57,7 @@
                             <option value="PASAPORTE" {{ old('tipo_documento') == 'PASAPORTE' ? 'selected' : '' }}>Pasaporte</option>
                         </select>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Número de Documento *</label>
                         <input type="text" name="numero_documento" id="numero_documento" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="{{ old('numero_documento') }}">
@@ -85,35 +85,35 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Placa *</label>
                                 <input type="text" name="multas[0][placa]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Valor *</label>
-                                <input 
-                                    type="number" 
-                                    step="1" 
-                                    min="0" 
-                                    name="multas[0][valor]" 
-                                    required 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                <input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    name="multas[0][valor]"
+                                    required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     inputmode="numeric"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, ''); calcularCuotas();">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Departamento *</label>
                                 <input type="text" name="multas[0][departamento]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
                                 <input type="text" name="multas[0][fecha]" required placeholder="dd/mm/aaaa" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Comparendo *</label>
                                 <input type="text" name="multas[0][comparendo]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Estado de Pago *</label>
                                 <select name="multas[0][estado_pago]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -122,17 +122,17 @@
                                     <option value="vencido">Vencido</option>
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Secretaría *</label>
                                 <input type="text" name="multas[0][secretaria]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Código de Infracción *</label>
                                 <input type="text" name="multas[0][codigo_infraccion]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            
+
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Infracciones *</label>
                                 <input type="text" name="multas[0][infracciones]" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Descripción de la infracción">
@@ -168,7 +168,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="flex justify-end mt-4">
                     <button type="button" onclick="agregarMulta()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg text-sm flex items-center space-x-2 shadow-md">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,10 +179,10 @@
                 </div>
             </div>
 
-            <!-- Sección Forma de Pago (solo si hay más de una multa) -->
-            <div id="formaPagoSection" class="mb-8 hidden">
+            <!-- Sección Forma de Pago (visible desde una multa) -->
+            <div id="formaPagoSection" class="mb-8">
                 <h4 class="text-xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-3">Forma de Pago</h4>
-                
+
                 <div class="bg-blue-50 p-6 rounded-lg mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -193,15 +193,29 @@
                                 <option value="acuerdo_pago">Acuerdo de Pago</option>
                             </select>
                         </div>
-                        
+
                         <div id="numeroCuotasDiv" class="hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Número de Cuotas *</label>
-                            <input type="number" name="numero_cuotas" id="numero_cuotas" min="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()">
+                            <input type="number" name="numero_cuotas" id="numero_cuotas" min="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()">
                         </div>
-                        
+
                         <div id="porcentajePrimeraDiv" class="hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Porcentaje Primera Cuota (%) *</label>
                             <input type="number" name="porcentaje_primera_cuota" id="porcentaje_primera_cuota" min="1" max="100" step="0.01" value="30" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="calcularCuotas()">
+                        </div>
+
+                        <div id="descuentoPagoUnicoDiv" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descuento Pago Único (%)</label>
+                            <input
+                                type="number"
+                                name="descuento_pago_unico"
+                                id="descuento_pago_unico"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value="0"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="calcularCuotas()">
                         </div>
                     </div>
                 </div>
@@ -218,7 +232,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="mt-8 flex justify-end space-x-4">
                 <a href="{{ route('dashboard') }}" class="px-8 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium shadow-md">
                     Cancelar
@@ -230,5 +244,30 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Inicializar forma de pago al cargar la página
+    // La sección debe estar SIEMPRE visible desde una multa
+    document.addEventListener('DOMContentLoaded', function() {
+        const formaPagoSection = document.getElementById('formaPagoSection');
+        if (formaPagoSection) {
+            // Forzar que esté visible siempre (siempre hay al menos 1 multa en create)
+            formaPagoSection.classList.remove('hidden');
+            formaPagoSection.style.display = '';
+        }
+
+        // Llamar a verificarFormaPago si está disponible (con retraso para asegurar que el DOM esté listo)
+        setTimeout(function() {
+            if (typeof verificarFormaPago === 'function') {
+                verificarFormaPago();
+            }
+            // Asegurar nuevamente que esté visible después de verificar
+            if (formaPagoSection) {
+                formaPagoSection.classList.remove('hidden');
+                formaPagoSection.style.display = '';
+            }
+        }, 50);
+    });
+</script>
 @endsection
 

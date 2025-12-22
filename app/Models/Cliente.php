@@ -19,10 +19,12 @@ class Cliente extends Model
         'forma_pago',
         'numero_cuotas',
         'porcentaje_primera_cuota',
+        'descuento_pago_unico',
     ];
 
     protected $casts = [
         'porcentaje_primera_cuota' => 'decimal:2',
+        'descuento_pago_unico' => 'decimal:2',
     ];
 
     /**

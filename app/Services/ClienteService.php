@@ -146,6 +146,7 @@ class ClienteService
             'forma_pago'               => $data['forma_pago'] ?? null,
             'numero_cuotas'           => $data['forma_pago'] === 'acuerdo_pago' ? ($data['numero_cuotas'] ?? null) : null,
             'porcentaje_primera_cuota' => $data['forma_pago'] === 'acuerdo_pago' ? ($data['porcentaje_primera_cuota'] ?? 30.00) : null,
+            'descuento_pago_unico'     => $data['forma_pago'] === 'pago_unico' ? ($data['descuento_pago_unico'] ?? null) : null,
         ];
 
         if ($data['forma_pago'] === 'acuerdo_pago' && empty($cliente->numero_acuerdo)) {
@@ -196,7 +197,7 @@ class ClienteService
             $cliente->load('multas');
 
             // Gestionar forma de pago
-            if (count($data['multas']) > 1 && ! empty($data['forma_pago'])) {
+            if (count($data['multas']) >= 1 && ! empty($data['forma_pago'])) {
                 $this->actualizarFormaPago($cliente, $data);
             } else {
                 $this->limpiarFormaPago($cliente);
@@ -264,7 +265,7 @@ class ClienteService
             $cliente->load('multas');
 
             // Gestionar forma de pago
-            if (count($data['multas']) > 1 && ! empty($data['forma_pago'])) {
+            if (count($data['multas']) >= 1 && ! empty($data['forma_pago'])) {
                 $this->actualizarFormaPago($cliente, $data);
             } else {
                 $this->limpiarFormaPago($cliente);

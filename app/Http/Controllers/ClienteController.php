@@ -105,13 +105,21 @@ class ClienteController extends Controller
         $multasPagadas = $cliente->multas->where('estado_pago', 'pagado')->sum('valor');
         $multasPendientes = $cliente->multas->where('estado_pago', '!=', 'pagado')->sum('valor');
         
+        // Aplicar descuento si la forma de pago es pago_unico y hay descuento
+        $descuentoAplicado = 0;
+        $multasPendientesConDescuento = $multasPendientes;
+        if ($cliente->forma_pago === 'pago_unico' && $cliente->descuento_pago_unico && $cliente->descuento_pago_unico > 0) {
+            $descuentoAplicado = $multasPendientes * ($cliente->descuento_pago_unico / 100);
+            $multasPendientesConDescuento = $multasPendientes - $descuentoAplicado;
+        }
+        
         // Obtener todas las cuotas ordenadas por número de cuota
         $cuotas = $cliente->cuotas()->orderBy('numero_cuota')->get();
         
         // Obtener cuotas pendientes para la tabla
         $cuotasPendientes = $cliente->cuotas()->where('estado', 'pendiente')->orderBy('numero_cuota')->get();
 
-        return view('consulta.resultados', compact('cliente', 'totalMultas', 'multasPagadas', 'multasPendientes', 'cuotas', 'cuotasPendientes'));
+        return view('consulta.resultados', compact('cliente', 'totalMultas', 'multasPagadas', 'multasPendientes', 'multasPendientesConDescuento', 'descuentoAplicado', 'cuotas', 'cuotasPendientes'));
     }
 
     /**
@@ -178,7 +186,16 @@ class ClienteController extends Controller
             }
 
             $cliente = $multas->first()->cliente;
-            $total = $multas->sum('valor');
+            $totalOriginal = $multas->sum('valor');
+            $total = $totalOriginal;
+            
+            // Aplicar descuento si la forma de pago es pago_unico y hay descuento
+            $descuentoAplicado = 0;
+            if ($cliente->forma_pago === 'pago_unico' && $cliente->descuento_pago_unico && $cliente->descuento_pago_unico > 0) {
+                $descuentoAplicado = $totalOriginal * ($cliente->descuento_pago_unico / 100);
+                $total = $totalOriginal - $descuentoAplicado;
+            }
+            
             $esPagoMultas = true;
         }
 
@@ -192,6 +209,8 @@ class ClienteController extends Controller
             'cuotasIds' => $cuotasIds,
             'multasIds' => $multasIds,
             'total' => $total,
+            'totalOriginal' => $totalOriginal ?? $total,
+            'descuentoAplicado' => $descuentoAplicado ?? 0,
             'nombrePagador' => $request->nombre_pagador,
             'emailPagador' => $request->email_pagador,
             'telefonoPagador' => $request->telefono_pagador,

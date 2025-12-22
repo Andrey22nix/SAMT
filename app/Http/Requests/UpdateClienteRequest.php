@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreClienteRequest extends FormRequest
+class UpdateClienteRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -40,5 +40,4 @@ class StoreClienteRequest extends FormRequest
         ];
     }
 }
-
 
