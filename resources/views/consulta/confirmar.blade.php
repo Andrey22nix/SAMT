@@ -331,16 +331,16 @@
         max-width: 100%;
         width: 100%;
         margin: 0;
-        padding: 18px 16px;
+        padding: 20px 16px;
         border-radius: 16px;
       }
       .qr-square-container {
-        width: 160px;
-        height: 160px;
-        margin: 10px auto 14px auto;
+        width: 240px;
+        height: 240px;
+        margin: 12px auto 16px auto;
       }
       .qr-card-header img {
-        max-width: 120px !important;
+        max-width: 140px !important;
       }
       .qr-instructions-title {
         font-size: 0.85rem;
@@ -380,12 +380,12 @@
         border-radius: 16px !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] > div[style*="width: 190px"] {
-        width: 160px !important;
-        height: 160px !important;
-        margin: 10px auto 14px auto !important;
+        width: 240px !important;
+        height: 240px !important;
+        margin: 12px auto 16px auto !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] img[alt="Redeban"] {
-        max-width: 120px !important;
+        max-width: 140px !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] h4 {
         font-size: 0.85rem !important;
@@ -485,18 +485,18 @@
         gap: 12px;
       }
       .qr-card-container {
-        padding: 14px 12px;
+        padding: 16px 12px;
         border-radius: 12px;
         border-width: 2px;
       }
       .qr-square-container {
-        width: 140px;
-        height: 140px;
-        margin: 8px auto 12px auto;
+        width: 200px;
+        height: 200px;
+        margin: 10px auto 14px auto;
         border-width: 3px;
       }
       .qr-card-header img {
-        max-width: 100px !important;
+        max-width: 130px !important;
       }
       .qr-instructions-title {
         font-size: 0.8rem;
@@ -530,18 +530,18 @@
         gap: 12px !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] {
-        padding: 14px 12px !important;
+        padding: 16px 12px !important;
         border-radius: 12px !important;
         border-width: 2px !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] > div[style*="width: 190px"] {
-        width: 140px !important;
-        height: 140px !important;
-        margin: 8px auto 12px auto !important;
+        width: 200px !important;
+        height: 200px !important;
+        margin: 10px auto 14px auto !important;
         border-width: 3px !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] img[alt="Redeban"] {
-        max-width: 100px !important;
+        max-width: 130px !important;
       }
       #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] h4 {
         font-size: 0.8rem !important;
