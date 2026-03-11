@@ -68,9 +68,31 @@
       right: 0;
       background-color: #00a651;
       color: white;
-      padding: 1rem 2rem;
+      padding: 1rem 1.5rem;
       box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
       z-index: 1000;
+    }
+    .payment-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .payment-bar-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .payment-bar-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .payment-bar-actions button,
+    .payment-bar-actions a {
+      min-height: 48px;
     }
     .next-cuota {
       background-color: #d1f7c4 !important;
@@ -103,9 +125,18 @@
     }
     #modalConfirmacion {
       backdrop-filter: blur(4px);
+      z-index: 1100;
     }
     #modalConfirmacion .bg-white {
       animation: slideDown 0.3s ease-out;
+    }
+    .modal-confirm-panel {
+      max-height: calc(100vh - 2rem);
+    }
+    .modal-confirm-actions {
+      position: sticky;
+      bottom: 0;
+      background: white;
     }
     @keyframes slideDown {
       from {
@@ -133,6 +164,34 @@
     .multa-checkbox:disabled {
       opacity: 0.6 !important;
       cursor: not-allowed !important;
+    }
+    @media (max-width: 768px) {
+      .payment-bar {
+        padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom));
+      }
+      .payment-bar-inner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .payment-bar-summary {
+        justify-content: center;
+        text-align: center;
+      }
+      .payment-bar-actions {
+        width: 100%;
+      }
+      .payment-bar-actions button,
+      .payment-bar-actions a {
+        flex: 1 1 0;
+        width: 100%;
+        text-align: center;
+      }
+      .modal-confirm-actions {
+        flex-direction: column-reverse;
+      }
+      .modal-confirm-actions button {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -481,12 +540,12 @@
 
     <!-- Barra de Pago Fija -->
     <div class="payment-bar">
-      <div class="container mx-auto flex justify-between items-center">
-        <div>
+      <div class="container mx-auto payment-bar-inner">
+        <div class="payment-bar-summary">
           <span class="text-lg font-bold">Total seleccionado para pagar: </span>
           <span class="text-2xl font-bold" id="total-seleccionado">$0</span>
         </div>
-        <div class="flex gap-4">
+        <div class="payment-bar-actions">
           <button onclick="pagarAhora()" class="bg-blue-900 hover:bg-blue-800 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
             Pagar Ahora
           </button>
@@ -507,7 +566,7 @@
 
   <!-- Modal de Confirmación -->
   <div id="modalConfirmacion" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center" onclick="if(event.target === this) cerrarModal()">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 modal-confirm-panel overflow-y-auto" onclick="event.stopPropagation()">
       <div class="p-6 border-b border-gray-200">
         <h2 class="text-2xl font-bold text-gray-800">Confirmar Selección</h2>
       </div>
@@ -523,7 +582,7 @@
           </div>
         </div>
       </div>
-      <div class="p-6 border-t border-gray-200 flex justify-end gap-4">
+      <div class="p-6 border-t border-gray-200 flex justify-end gap-4 modal-confirm-actions">
         <button onclick="cerrarModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
           Cancelar
         </button>
@@ -648,32 +707,38 @@
     }
 
 
+    function obtenerCuotasSeleccionadas() {
+      return Array.from(document.querySelectorAll('.cuota-checkbox:checked'))
+        .filter(checkbox => checkbox.id !== 'selectAllCuotas' && checkbox.hasAttribute('data-valor'));
+    }
+
+    function obtenerMultasSeleccionadas() {
+      return Array.from(document.querySelectorAll('.multa-checkbox:checked'))
+        .filter(checkbox => checkbox.hasAttribute('data-valor'));
+    }
+
     function updateTotal() {
       // Sumar cuotas seleccionadas
-      const cuotasSeleccionadas = document.querySelectorAll('.cuota-checkbox:checked');
+      const cuotasSeleccionadas = obtenerCuotasSeleccionadas();
       let total = 0;
       let esPagoMultas = false;
 
       cuotasSeleccionadas.forEach(checkbox => {
-        if (checkbox.checked) {
-          const valorStr = checkbox.getAttribute('data-valor');
-          const valor = parseFloat(valorStr);
-          if (!isNaN(valor) && isFinite(valor)) {
-            total += valor;
-          }
+        const valorStr = checkbox.getAttribute('data-valor');
+        const valor = parseFloat(valorStr);
+        if (!isNaN(valor) && isFinite(valor)) {
+          total += valor;
         }
       });
 
       // Si no hay cuotas seleccionadas, intentar sumar multa única seleccionada (pago directo de multa)
       if (cuotasSeleccionadas.length === 0) {
-        const multasSeleccionadas = document.querySelectorAll('.multa-checkbox:checked');
+        const multasSeleccionadas = obtenerMultasSeleccionadas();
         multasSeleccionadas.forEach(checkbox => {
-          if (checkbox.checked) {
-            const valorStr = checkbox.getAttribute('data-valor');
-            const valor = parseFloat(valorStr);
-            if (!isNaN(valor) && isFinite(valor)) {
-              total += valor;
-            }
+          const valorStr = checkbox.getAttribute('data-valor');
+          const valor = parseFloat(valorStr);
+          if (!isNaN(valor) && isFinite(valor)) {
+            total += valor;
           }
         });
         esPagoMultas = multasSeleccionadas.length > 0;
@@ -720,8 +785,8 @@
     }
 
     function pagarAhora() {
-      const cuotasCheckboxes = document.querySelectorAll('.cuota-checkbox:checked');
-      const multasCheckboxes = document.querySelectorAll('.multa-checkbox:checked');
+      const cuotasCheckboxes = obtenerCuotasSeleccionadas();
+      const multasCheckboxes = obtenerMultasSeleccionadas();
 
       if (cuotasCheckboxes.length === 0 && multasCheckboxes.length === 0) {
         alert('Por favor, seleccione al menos una cuota o multa para pagar.');
@@ -751,6 +816,10 @@
           const valor = parseFloat(checkbox.getAttribute('data-valor'));
           const fecha = checkbox.getAttribute('data-fecha');
 
+          if (isNaN(valor) || !isFinite(valor)) {
+            return;
+          }
+
           total += valor;
 
           items.push({
@@ -773,6 +842,10 @@
           const comparendo = checkbox.getAttribute('data-comparendo');
           const valor = parseFloat(checkbox.getAttribute('data-valor'));
           const fecha = checkbox.getAttribute('data-fecha');
+
+          if (isNaN(valor) || !isFinite(valor)) {
+            return;
+          }
 
           total += valor;
 
@@ -863,8 +936,8 @@
     }
 
     function confirmarPago() {
-      const cuotasCheckboxes = document.querySelectorAll('.cuota-checkbox:checked');
-      const multasCheckboxes = document.querySelectorAll('.multa-checkbox:checked');
+      const cuotasCheckboxes = obtenerCuotasSeleccionadas();
+      const multasCheckboxes = obtenerMultasSeleccionadas();
       const cuotasIds = Array.from(cuotasCheckboxes).map(cb => cb.value);
       const multasIds = Array.from(multasCheckboxes).map(cb => cb.value);
 
