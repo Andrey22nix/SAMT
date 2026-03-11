@@ -185,38 +185,402 @@
     .item-row:last-child {
       border-bottom: none;
     }
+    .qr-wrapper-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 40px;
+    }
+    .qr-logo-side {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex: 0 0 auto;
+    }
+    .qr-logo-side.right {
+      justify-content: flex-end;
+    }
+    .qr-card-container {
+      display: inline-block;
+      background: #ffffff;
+      border-radius: 22px;
+      border: 3px solid #0054a6;
+      padding: 22px 24px;
+      max-width: 280px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+      flex: 0 0 auto;
+      margin: 0 80px;
+    }
+    .qr-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .qr-square-container {
+      margin: 12px auto 18px auto;
+      width: 190px;
+      height: 190px;
+      border: 4px solid #0054a6;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+    }
+    .qr-instructions-title {
+      margin: 8px 0 6px 0;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #0054a6;
+    }
+    .qr-instructions-list {
+      margin: 4px 0 0 18px;
+      padding: 0;
+      text-align: left;
+      font-size: 0.75rem;
+      color: #333;
+      line-height: 1.3;
+    }
+    .qr-footer-logos {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
     @media (max-width: 768px) {
+      header {
+        padding: 0.6em 0.5em;
+      }
       .header-contacts {
         flex-direction: row;
-        gap: 1em;
-        font-size: 0.9em;
+        gap: 0.8em;
+        font-size: 0.85em;
         justify-content: center;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
+        margin-top: 0.5em;
       }
       .header-contacts a {
         white-space: nowrap;
+        padding: 0.3em 0.5em;
       }
       .subheader-layer {
         flex-direction: row;
         gap: 0.5em;
-        padding: 0.5em 1em;
+        padding: 0.4em 0.5em;
       }
       .subheader-layer img {
         width: auto;
         height: auto;
-        max-height: 80px;
+        max-height: 50px;
+      }
+      .container {
+        margin: 8px auto;
+        padding: 12px;
+      }
+      .section-title {
+        font-size: 1.25rem;
+        margin-bottom: 12px;
+      }
+      .summary-box {
+        padding: 12px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+      }
+      .summary-box span {
+        margin: 3px 0;
+        word-break: break-word;
+      }
+      .items-list {
+        margin: 16px 0;
+      }
+      .item-row {
+        padding: 12px 8px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .item-row > div:last-child {
+        align-self: flex-end;
+        font-size: 1.1rem;
+      }
+      .qr-code-container {
+        margin: 16px 0;
+      }
+      .qr-code-container h3 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+      }
+      .qr-wrapper-container {
+        flex-direction: column;
+        padding: 10px;
+        gap: 15px;
+      }
+      .qr-logo-side {
+        display: none;
+      }
+      .qr-card-container {
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 20px 16px;
+        border-radius: 16px;
+      }
+      .qr-square-container {
+        width: 240px;
+        height: 240px;
+        margin: 12px auto 16px auto;
+      }
+      .qr-card-header img {
+        max-width: 140px !important;
+      }
+      .qr-instructions-title {
+        font-size: 0.85rem;
+      }
+      .qr-instructions-list {
+        font-size: 0.7rem;
+        margin-left: 16px;
+      }
+      .qr-footer-logos {
+        margin-top: 12px;
+        gap: 12px;
+      }
+      .qr-footer-logos img {
+        max-height: 30px !important;
+      }
+      .qr-code-container img[alt="Formas de pago"] {
+        max-width: 100%;
+        height: auto;
+        margin-top: 15px;
+      }
+      #qrMethod > div[style*="display: flex"] {
+        flex-direction: column !important;
+        padding: 10px !important;
+        gap: 15px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="flex-start"] {
+        display: none !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="flex-end"] {
+        display: none !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 18px 16px !important;
+        border-radius: 16px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] > div[style*="width: 190px"] {
+        width: 240px !important;
+        height: 240px !important;
+        margin: 12px auto 16px auto !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] img[alt="Redeban"] {
+        max-width: 140px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] h4 {
+        font-size: 0.85rem !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] ol {
+        font-size: 0.7rem !important;
+        margin-left: 16px !important;
+      }
+      .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      button {
+        width: 100%;
+        padding: 16px 24px;
+        font-size: 1rem;
+        margin-right: 0;
+        margin-bottom: 0;
+      }
+      .modal-content {
+        padding: 16px;
+        width: 95%;
+        max-width: 90%;
+      }
+      footer {
+        padding: 12px 8px;
+        font-size: 11px;
+        margin-top: 30px;
+      }
+      footer p {
+        padding: 0 8px;
       }
     }
     @media (max-width: 480px) {
+      header {
+        padding: 0.5em 0.3em;
+      }
       .header-contacts {
-        font-size: 0.8em;
-        gap: 0.8em;
+        font-size: 0.75em;
+        gap: 0.6em;
+        flex-wrap: wrap;
+      }
+      .header-contacts a {
+        padding: 0.25em 0.4em;
+      }
+      .subheader-layer {
+        padding: 0.3em 0.4em;
+        gap: 0.4em;
       }
       .subheader-layer img {
-        max-height: 60px;
+        max-height: 40px;
       }
-      .qr-code-container img {
-        max-width: 300px;
+      .container {
+        margin: 5px auto;
+        padding: 10px;
+        border-radius: 8px;
+      }
+      .section-title {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        padding-bottom: 3px;
+      }
+      .summary-box {
+        padding: 10px;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+        border-radius: 6px;
+      }
+      .summary-box span {
+        margin: 2px 0;
+        line-height: 1.4;
+      }
+      .items-list {
+        margin: 12px 0;
+      }
+      .item-row {
+        padding: 10px 6px;
+        gap: 6px;
+      }
+      .item-row strong {
+        font-size: 0.9rem;
+      }
+      .item-row small {
+        font-size: 0.8rem;
+      }
+      .qr-code-container {
+        margin: 12px 0;
+      }
+      .qr-code-container h3 {
+        font-size: 1rem;
+        margin-bottom: 10px;
+      }
+      .qr-wrapper-container {
+        padding: 8px 5px;
+        gap: 12px;
+      }
+      .qr-card-container {
+        padding: 16px 12px;
+        border-radius: 12px;
+        border-width: 2px;
+      }
+      .qr-square-container {
+        width: 200px;
+        height: 200px;
+        margin: 10px auto 14px auto;
+        border-width: 3px;
+      }
+      .qr-card-header img {
+        max-width: 130px !important;
+      }
+      .qr-instructions-title {
+        font-size: 0.8rem;
+        margin: 6px 0 4px 0;
+      }
+      .qr-instructions-list {
+        font-size: 0.65rem;
+        margin-left: 14px;
+        line-height: 1.25;
+      }
+      .qr-footer-logos {
+        margin-top: 10px;
+        gap: 10px;
+      }
+      .qr-footer-logos img {
+        max-height: 26px !important;
+      }
+      .qr-code-container img[alt="Formas de pago"] {
+        margin-top: 12px;
+      }
+      #reference {
+        font-size: 0.85rem;
+        margin-top: 10px;
+      }
+      #paymentWaiting {
+        font-size: 0.85rem;
+        margin-top: 8px;
+      }
+      #qrMethod > div[style*="display: flex"] {
+        padding: 8px 5px !important;
+        gap: 12px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] {
+        padding: 16px 12px !important;
+        border-radius: 12px !important;
+        border-width: 2px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] > div[style*="width: 190px"] {
+        width: 200px !important;
+        height: 200px !important;
+        margin: 10px auto 14px auto !important;
+        border-width: 3px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] img[alt="Redeban"] {
+        max-width: 130px !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] h4 {
+        font-size: 0.8rem !important;
+        margin: 6px 0 4px 0 !important;
+      }
+      #qrMethod > div[style*="display: flex"] > div[style*="max-width: 280px"] ol {
+        font-size: 0.65rem !important;
+        margin-left: 14px !important;
+        line-height: 1.25 !important;
+      }
+      #qrMethod img[alt="Formas de pago"] {
+        max-width: 100% !important;
+        height: auto !important;
+        margin-top: 12px !important;
+      }
+      .button-container {
+        gap: 10px;
+        margin-top: 20px;
+      }
+      button {
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        border-radius: 6px;
+      }
+      .modal-content {
+        padding: 14px;
+        width: 98%;
+        max-width: 95%;
+      }
+      .modal-content h2 {
+        font-size: 1.2rem;
+      }
+      .modal-content p {
+        font-size: 0.9rem;
+      }
+      footer {
+        padding: 10px 5px;
+        font-size: 10px;
+        margin-top: 25px;
       }
     }
   </style>
