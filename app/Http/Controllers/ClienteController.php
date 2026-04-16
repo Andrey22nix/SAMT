@@ -145,10 +145,10 @@ class ClienteController extends Controller
             'cuotas_ids.*' => ['integer', 'exists:cuotas,id'],
             'multas_ids' => ['nullable', 'array'],
             'multas_ids.*' => ['integer', 'exists:simit_registros,id'],
-            'nombre_pagador' => ['required', 'string', 'max:255'],
-            'email_pagador' => ['required', 'email', 'max:255'],
-            'telefono_pagador' => ['required', 'string', 'max:50'],
-            'direccion_pagador' => ['required', 'string', 'max:500'],
+            'nombre_pagador' => ['nullable', 'string', 'max:255'],
+            'email_pagador' => ['nullable', 'email', 'max:255'],
+            'telefono_pagador' => ['nullable', 'string', 'max:50'],
+            'direccion_pagador' => ['nullable', 'string', 'max:500'],
         ]);
 
         $cuotasIds = $request->cuotas_ids ?? [];

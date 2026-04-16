@@ -468,12 +468,10 @@
                 <!-- Nombre -->
                 <div>
                     <label for="nombre_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre completo <span class="text-red-500">*</span>
+                        Nombre completo (opcional)
                     </label>
                     <input type="text" id="nombre_pagador" name="nombre_pagador"
-                           minlength="3"
                            maxlength="60"
-                           required
                            autocomplete="name"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                            placeholder="Ingrese el nombre completo"
@@ -485,10 +483,9 @@
                 <!-- Email -->
                 <div>
                     <label for="email_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Correo electrónico <span class="text-red-500">*</span>
+                        Correo electrónico (opcional)
                     </label>
                     <input type="email" id="email_pagador" name="email_pagador"
-                           required
                            maxlength="80"
                            autocomplete="email"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
@@ -501,12 +498,10 @@
                 <!-- Teléfono -->
                 <div>
                     <label for="telefono_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Teléfono <span class="text-red-500">*</span>
+                        Teléfono (opcional)
                     </label>
                     <input type="tel" id="telefono_pagador" name="telefono_pagador"
-                           minlength="7"
                            maxlength="10"
-                           required
                            autocomplete="tel"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                            placeholder="3001234567"
@@ -518,12 +513,10 @@
                 <!-- Dirección -->
                 <div>
                     <label for="direccion_pagador" class="block text-sm font-medium text-gray-700 mb-2">
-                        Dirección <span class="text-red-500">*</span>
+                        Dirección (opcional)
                     </label>
                     <input type="text" id="direccion_pagador" name="direccion_pagador"
-                           minlength="5"
                            maxlength="120"
-                           required
                            autocomplete="street-address"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                            placeholder="Calle, número, ciudad"
@@ -614,47 +607,41 @@
       const errorElement = document.getElementById('error_' + id);
       let esValido = true;
       
-      // Validaciones específicas por campo
+      if (valor.length === 0) {
+        input.classList.remove('border-red-500', 'ring-red-500', 'border-green-500', 'ring-green-500');
+        if (errorElement) errorElement.classList.add('hidden');
+        return true;
+      }
+
       switch(id) {
         case 'nombre_pagador':
-          // Solo letras y espacios, mínimo 3 caracteres
           const regexNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,60}$/;
           esValido = regexNombre.test(valor) && valor.length >= 3;
           break;
           
         case 'email_pagador':
-          // Email válido
           const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           esValido = regexEmail.test(valor);
           break;
           
         case 'telefono_pagador':
-          // Solo números, entre 7 y 10 dígitos
           const regexTelefono = /^[0-9]{7,10}$/;
           esValido = regexTelefono.test(valor);
           break;
           
         case 'direccion_pagador':
-          // Mínimo 5 caracteres
           esValido = valor.length >= 5;
           break;
       }
       
-      // Aplicar estilos visuales
-      if (valor.length > 0) {
-        if (esValido) {
-          input.classList.remove('border-red-500', 'ring-red-500');
-          input.classList.add('border-green-500', 'ring-green-500');
-          if (errorElement) errorElement.classList.add('hidden');
-        } else {
-          input.classList.remove('border-green-500', 'ring-green-500');
-          input.classList.add('border-red-500', 'ring-red-500');
-          if (errorElement) errorElement.classList.remove('hidden');
-        }
-      } else {
-        // Sin valor, quitar estilos de validación
-        input.classList.remove('border-red-500', 'ring-red-500', 'border-green-500', 'ring-green-500');
+      if (esValido) {
+        input.classList.remove('border-red-500', 'ring-red-500');
+        input.classList.add('border-green-500', 'ring-green-500');
         if (errorElement) errorElement.classList.add('hidden');
+      } else {
+        input.classList.remove('border-green-500', 'ring-green-500');
+        input.classList.add('border-red-500', 'ring-red-500');
+        if (errorElement) errorElement.classList.remove('hidden');
       }
       
       return esValido;
@@ -795,7 +782,7 @@
 
       // Validar formulario del pagador con la nueva función
       if (!validarFormularioPagador()) {
-        alert('Por favor, complete correctamente todos los datos del pagador.');
+        alert('Por favor, verifique los datos de contacto ingresados.');
         return;
       }
 
@@ -949,7 +936,7 @@
       // Validar formulario del pagador
       if (!validarFormularioPagador()) {
         cerrarModal();
-        alert('Por favor, complete correctamente todos los datos del pagador.');
+        alert('Por favor, verifique los datos de contacto ingresados.');
         return;
       }
 
@@ -1041,6 +1028,9 @@
       if (primeraCuotaCheckbox) {
         primeraCuotaCheckbox.checked = true;
       }
+      document.querySelectorAll('.multa-checkbox:not(:disabled)').forEach(cb => {
+        cb.checked = true;
+      });
       updateTotal();
     });
   </script>
