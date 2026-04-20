@@ -674,14 +674,20 @@
             <img src="{{ asset('R8.png') }}" alt="Redeban" style="max-width: 150px; height: auto;">
           </div>
 
-          {{-- Contenedor cuadrado donde se dibuja el código QR --}}
-          <div style="margin: 12px auto 18px auto; width: 190px; height: 190px; border: 4px solid #0054a6; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #ffffff;">
-            <img
-              id="qrImage"
-              src="{{ $qrImageUrl ?? '' }}"
-              alt="Código QR de Pago"
-              style="display: none; width: 100%; height: 100%; object-fit: contain;"
-            >
+          <div style="margin: 12px auto 18px auto; width: 190px; height: 190px; border-radius: 14px; padding: 7px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fcd116 0%, #fcd116 38%, #003893 38%, #003893 69%, #ce1126 69%, #ce1126 100%); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);">
+            <div style="width: 100%; height: 100%; border-radius: 10px; background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 8px;">
+              <img
+                id="qrImage"
+                src="{{ $qrImageUrl ?? '' }}"
+                alt="Código QR de Pago"
+                style="display: none; width: 100%; height: 100%; object-fit: contain;"
+              >
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin: 10px 0 4px 0;">
+            <img src="{{ asset('Redeban2019.webp') }}" alt="Redeban" style="max-height: 28px; width: auto;">
+            <img src="{{ asset('small-image.png') }}" alt="SIMIT" style="max-height: 28px; width: auto;">
           </div>
 
           {{-- Título e instrucciones resumidas --}}
